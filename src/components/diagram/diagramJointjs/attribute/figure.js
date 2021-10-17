@@ -10,8 +10,8 @@ export default function Attribute() {
             root: {
                 tabindex: 2,
                 ty: 'attribute',
-                key: "",
-                attrval: "",
+                key: '',
+                attrval: '',
                 removey: '0%',
                 removex: '100%',
                 title: 'Atributo'

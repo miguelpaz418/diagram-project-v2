@@ -107,23 +107,6 @@ class AttributeComponent extends React.PureComponent {
     };
   };
 
-  makeTextInput = (val) => {
-    return (
-          <TextField
-            name="value"
-            type= 'text'
-            label="Valor"
-            placeholder="Valor"
-            className={val}
-            value={this.props.value}
-            onChange={this.props.handleChange2}
-            fullWidth
-            variant="outlined"
-            error={this.state.errors.value ? true : false}
-            helperText={this.state.errors.value}
-          />
-      );
-  };
 
   
 
@@ -131,10 +114,6 @@ class AttributeComponent extends React.PureComponent {
     const { classes } = this.props;
     //get the attributes from data in redux
     const { attributes } = this.props.data;
-
-    if (this.props.inputType !== '') {
-      var newInputText = this.makeTextInput(classes.textField);
-    }
     return (
         <Dialog open={this.props.open} maxWidth="xs" onClose={this.props.handleClose}>
           <DialogTitle>Editar atributo</DialogTitle>
@@ -143,10 +122,7 @@ class AttributeComponent extends React.PureComponent {
               <FormControl variant="outlined" fullWidth className={classes.formControl}>
                 <InputLabel id="demo-simple-select-outlined-label">Nombre</InputLabel>
                 <Select
-                  labelId="demo-simple-select-outlined-label"
-                  id="demo-simple-select-outlined"
                   label="Nombre"
-                  name="attributeComplete"
                   value={this.props.attributeComplete}
                   onChange={this.props.handleChange}
                   fullWidth
@@ -158,7 +134,19 @@ class AttributeComponent extends React.PureComponent {
                   ))}
                 </Select>
               </FormControl>
-              {newInputText}
+              <TextField
+                name="value"
+                type= 'text'
+                label="Valor"
+                placeholder="Valor"
+                className={classes.textField}
+                value={this.props.value}
+                onChange={this.props.handleChange2}
+                fullWidth
+                variant="outlined"
+                error={this.state.errors.value ? true : false}
+                helperText={this.state.errors.value}
+              />
             </form>
           </DialogContent>
           <DialogActions>

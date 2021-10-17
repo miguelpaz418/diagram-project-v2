@@ -73,7 +73,7 @@ class Graph extends React.Component {
             attribute: "",
             attributeComplete: "",
             value: "",
-            attributeType: "number",
+            attributeType: "text",
             colorObject: "",
             colorName: "",
         };
@@ -152,20 +152,24 @@ class Graph extends React.Component {
             var attributeValue = element.attr(['root', 'key'])
             var attributeValue2 = element.attr(['root', 'attrval'])
 
+
             switch (element.attributes.attrs.root.ty) {
                 case "action":
 
-                    this.changeShape(element, "", "", "", "", "")
+                    this.changeShape(element, "", "", "", "", "", "")
                     this.handleOpen();
                   break;
                 case "attribute":
+                    if(text !== undefined){
+                        var attributeName = text.split(":")[0]
+                    }
 
-                    this.changeShape(element, text, "", "", attributeValue, attributeValue2)
+                    this.changeShape(element, text, "", "", attributeValue, attributeValue2, attributeName)
                     this.handleOpenAttribute();
                   break;
                 default:
 
-                    this.changeShape(element, text, color, colorText, "", "")
+                    this.changeShape(element, text, color, colorText, "", "", "")
                     this.handleOpenObject();
                   break;
             }
@@ -304,11 +308,22 @@ class Graph extends React.Component {
 
     }  
 
-    changeShape = (shape, text, color, colorText, attributeValue, attributeValue2) => {
-
+    changeShape = (shape, text, color, colorText, attributeValue, attributeValue2, attributeName) => {
+        var attrType = "text"
         if(text === undefined){
             text = ""
         }
+
+        if(attributeValue === undefined){
+            attributeValue = ""
+        }else{
+            attrType = attributeValue.split("-")[1]
+        }
+
+        if(attributeValue2 === undefined){
+            attributeValue2 = ""
+        }
+
 
         this.setState({
           selected: shape,
@@ -317,7 +332,10 @@ class Graph extends React.Component {
           colorName: colorText,
           attributeComplete: attributeValue,
           value: attributeValue2,
+          attribute: attributeName,
+          attributeType: attrType,
         });
+
     };
 
     constraintsObjects = (fuente,destino) => {
@@ -447,7 +465,7 @@ class Graph extends React.Component {
         let label = event.nativeEvent.target.textContent;
         var arrayDeCadenas = event.target.value.split("-");
         this.setState({
-          [event.target.name]: event.target.value,
+          attributeComplete: event.target.value,
           attribute: label,
           attributeType: arrayDeCadenas[1],
           value: "",
