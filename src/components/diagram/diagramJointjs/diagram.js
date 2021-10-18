@@ -8,11 +8,10 @@ import withStyles from "@material-ui/core/styles/withStyles";
 import Panel from './panel'
 import {listOfActions} from './config-panel'
 
-import Hardware from './hardware/figure';
-import Passive from './passive/figure';
-import Multimedia from './multimedia/figure';
-import Action from './action/figure';
-import Attribute from './attribute/figure';
+import { returnFigure, 
+        constraintsObjects, 
+        undefinedToEmpty 
+    } from './functionsDiagram'
 
 import ObjectModal from './hardware/component';
 import ActionModal from './action/component';
@@ -25,36 +24,15 @@ import "jointjs/dist/joint.css";
 import "jointjs/css/layout.css";
 import "jointjs/css/themes/default.css";
 
-import $ from 'jquery'; 
 
 
 const styles = theme => ({
     ...theme.formTheme,
     root: {
-        
         '& > *': {
             margin: theme.spacing(1),
         }
     },
-    new: {
-        overflow: 'auto',
-    },
-    list: {
-        position: 'absolute',
-        zIndex: '1',
-        width: '40px',
-        
-    },
-    btn: {
-        paddingLeft : '8px',
-        backgroundColor: '#CCCCCC',
-    },
-    ico: {
-        minWidth: '24px',
-    },
-    chip: {
-        margin: theme.spacing(1)
-    }
   });
 
 class Graph extends React.Component {
@@ -70,7 +48,7 @@ class Graph extends React.Component {
             op3: false,
             selected: null,
             nameObject: "",
-            attribute: "",
+            attributeName: "",
             attributeComplete: "",
             value: "",
             attributeType: "text",
@@ -133,43 +111,39 @@ class Graph extends React.Component {
 
             const fuente = linkView.sourceView.el.attributes.ty.value
             const destino = targetView.el.attributes.ty.value
-            const res = this.constraintsObjects(fuente,destino)
+            const res = constraintsObjects(fuente,destino)
             if(res){
                 linkView.model.remove()
             }
             
-        }.bind(this));
+        });
 
         // Event when double click
 
         this.paper.on('element:pointerdblclick', function(elementView, evt) {
 
             var element = elementView.model;
-            //var text = prompt('Shape Text', element.attr(['label', 'text']));
-            var text = element.attr(['label', 'text'])
-            var colorText = element.attr(['label', 'fill'])
-            var color = element.attr(['body', 'fill'])
-            var attributeValue = element.attr(['root', 'key'])
-            var attributeValue2 = element.attr(['root', 'attrval'])
+            var nameObject = undefinedToEmpty(element.attr(['label', 'text']))
+            var colorName = undefinedToEmpty(element.attr(['label', 'fill']))
+            var colorObject = undefinedToEmpty(element.attr(['body', 'fill']))
+            var attributeComplete = undefinedToEmpty(element.attr(['root', 'key']))
+            var value = undefinedToEmpty(element.attr(['root', 'attrval']))
 
 
             switch (element.attributes.attrs.root.ty) {
                 case "action":
-
                     this.changeShape(element, "", "", "", "", "", "")
                     this.handleOpen();
                   break;
                 case "attribute":
-                    if(text !== undefined){
-                        var attributeName = text.split(":")[0]
+                    if(nameObject !== undefined){
+                        var attributeName = nameObject.split(":")[0]
                     }
-
-                    this.changeShape(element, text, "", "", attributeValue, attributeValue2, attributeName)
+                    this.changeShape(element, nameObject, "", "", attributeComplete, value, attributeName)
                     this.handleOpenAttribute();
                   break;
                 default:
-
-                    this.changeShape(element, text, color, colorText, "", "", "")
+                    this.changeShape(element, nameObject, colorObject, colorName, "", "", "")
                     this.handleOpenObject();
                   break;
             }
@@ -224,9 +198,6 @@ class Graph extends React.Component {
 
         this.paper.options.snapLinks = true;
 
-        $('#perpendicularLinks').on('change', function() {
-            this.paper.options.perpendicularLinks = $(this).is(':checked') ? true : false;
-        });
 
         this.paper.on('link:mouseenter', function(linkView) {
             var verticesTool = new joint.linkTools.Vertices();
@@ -256,6 +227,12 @@ class Graph extends React.Component {
 
     }
 
+    saveDiagram = () => {
+        this.graph.set('graphCustomProperty', true);
+        this.graph.set('graphExportTime', Date.now());
+        var jsonData = this.graph.toJSON();
+        return jsonData
+    }
 
     zoomIn = () => {
         this.zoomLevel = Math.min(3, this.zoomLevel + 0.2);
@@ -272,82 +249,24 @@ class Graph extends React.Component {
     }
 
     addFigure = (type) => {
-        var figure = null;
-
-        switch (type) {
-            case "hardware":
-                figure = Hardware()
-              break;
-            case "passive":
-                figure = Passive()
-              break;
-            case "multimedia":
-                figure = Multimedia()
-              break;
-            case "action":
-                figure = Action()
-              break;
-            case "attribute":
-                figure = Attribute()
-              break;
-            case "out":
-                this.zoomOut()
-              break;
-            case "in":
-                this.zoomIn()
-              break;
-            default:
-                console.log("default")
-            break;
-        }
-
-        if(figure){
-            this.graph.addCells([figure]);
-            
-        }
-
+        returnFigure(this.graph,type)
     }  
 
-    changeShape = (shape, text, color, colorText, attributeValue, attributeValue2, attributeName) => {
-        var attrType = "text"
-        if(text === undefined){
-            text = ""
-        }
-
-        if(attributeValue === undefined){
-            attributeValue = ""
-        }else{
-            attrType = attributeValue.split("-")[1]
-        }
-
-        if(attributeValue2 === undefined){
-            attributeValue2 = ""
-        }
-
+    changeShape = (shape, nameObject, colorObject, colorName, attributeComplete, value, attributeName) => {
+        var attributeType = "text"
+        attributeType = attributeComplete.split("-")[1]
 
         this.setState({
           selected: shape,
-          nameObject: text,
-          colorObject: color,
-          colorName: colorText,
-          attributeComplete: attributeValue,
-          value: attributeValue2,
-          attribute: attributeName,
-          attributeType: attrType,
+          nameObject: nameObject,
+          colorObject: colorObject,
+          colorName: colorName,
+          attributeComplete: attributeComplete,
+          value: value,
+          attributeName: attributeName,
+          attributeType: attributeType,
         });
 
-    };
-
-    constraintsObjects = (fuente,destino) => {
-        var res = false
-        if(fuente === 'object' && destino === 'object'){
-            res = true
-        }else if(fuente === 'attribute' && destino !== 'object'){
-            res = true
-        }else if(fuente === 'action' && destino !== 'object'){
-            res = true
-        }
-        return res
     };
 
     handleOpen = () => {
@@ -361,7 +280,6 @@ class Graph extends React.Component {
             op: false
           });
     };
-
 
     handleClick =( event, data) => {
         event.preventDefault();
@@ -400,13 +318,6 @@ class Graph extends React.Component {
         });
     };
 
-    saveDiagram = () => {
-        this.graph.set('graphCustomProperty', true);
-        this.graph.set('graphExportTime', Date.now());
-        var jsonData = this.graph.toJSON();
-        return jsonData
-    }
-
     handleClickObject = (event) => {
         event.preventDefault();
 
@@ -440,9 +351,9 @@ class Graph extends React.Component {
           });
     };
 
-    handleClickAttribute = (event,data) => {
+    handleClickAttribute = event => {
         event.preventDefault();
-        var text = this.state.attribute + ': ' + this.state.value
+        var text = this.state.attributeName + ': ' + this.state.value
         var element = this.state.selected
         if (text !== null) {
             element.attr({
@@ -452,7 +363,7 @@ class Graph extends React.Component {
             });
             this.setState({
                 selected: null,
-                attribute: "",
+                attributeName: "",
                 value: "",
                 attributeType: "",
                 attributeComplete: "",
@@ -463,10 +374,10 @@ class Graph extends React.Component {
 
     handleChangeAttribute = event => {
         let label = event.nativeEvent.target.textContent;
-        var arrayDeCadenas = event.target.value.split("-");
+        let arrayDeCadenas = event.target.value.split("-");
         this.setState({
           attributeComplete: event.target.value,
-          attribute: label,
+          attributeName: label,
           attributeType: arrayDeCadenas[1],
           value: "",
         });
@@ -479,11 +390,9 @@ class Graph extends React.Component {
     };
 
     validateChange = (value) => {
-
         if(this.state.attributeType === 'number' && !Number(value)){
             return value.replace(/\D/g, '');
         }
-        
         return value
     };
 
@@ -494,9 +403,33 @@ class Graph extends React.Component {
             <div className={classes.root}>
                 <Panel listOfActions={listOfActions} action={this.addFigure}  />
                 <div id="playground" ref="placeholder" ></div>
-                <ActionModal open={this.state.op} handleOpen={this.handleOpen} handleClose={this.handleClose} handleClick={this.handleClick}></ActionModal>
-                <ObjectModal open={this.state.op2} handleOpen={this.handleOpenObject} handleClose={this.handleCloseObject} handleClick={this.handleClickObject} handleChange={this.handleChange} handleChange2={this.handleChange2} nameObject={this.state.nameObject} colorObject={this.state.colorObject} colorName={this.state.colorName}></ObjectModal>
-                <AttributeModal open={this.state.op3} handleOpen={this.handleOpenAttribute} handleClose={this.handleCloseAttribute} handleClick={this.handleClickAttribute} handleChange={this.handleChangeAttribute} handleChange2={this.handleChange2Attribute}  attributeComplete= {this.state.attributeComplete} attribute={this.state.attribute} value={this.state.value}></AttributeModal>
+                <ActionModal 
+                    open={this.state.op} 
+                    handleOpen={this.handleOpen} 
+                    handleClose={this.handleClose} 
+                    handleClick={this.handleClick}
+                />
+                <ObjectModal 
+                    open={this.state.op2} 
+                    handleOpen={this.handleOpenObject} 
+                    handleClose={this.handleCloseObject} 
+                    handleClick={this.handleClickObject} 
+                    handleChange={this.handleChange} 
+                    handleChange2={this.handleChange2} 
+                    nameObject={this.state.nameObject} 
+                    colorObject={this.state.colorObject} 
+                    colorName={this.state.colorName}
+                />
+                <AttributeModal 
+                    open={this.state.op3} 
+                    handleOpen={this.handleOpenAttribute} 
+                    handleClose={this.handleCloseAttribute} 
+                    handleClick={this.handleClickAttribute} 
+                    handleChange={this.handleChangeAttribute} 
+                    handleChange2={this.handleChange2Attribute}  
+                    attributeComplete= {this.state.attributeComplete} 
+                    value={this.state.value}
+                />
             </div>
         );
     }
