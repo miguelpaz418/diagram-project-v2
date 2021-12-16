@@ -52,6 +52,7 @@ class objectDiagram extends Component {
     const diagramId = this.props.match.params.diagramId;
     const {
       diagram: { diagram, diagramUserId, comments, type, diagramName },
+      project: { title },
       loading
     } = this.props.data;
     const { classes } = this.props;
@@ -119,8 +120,11 @@ class objectDiagram extends Component {
 
     let nameComments = !loading ? (
       <div>
-        <Typography variant="h6">
-          <span className={classes.nameDiagram}>Nombre:</span> {diagramName}
+        <Typography variant="body1">
+          <span className={classes.typeDiagram}>Proyecto:</span> {title}
+        </Typography>
+        <Typography variant="body1">
+          <span className={classes.typeDiagram}>Digrama:</span> {diagramName}
         </Typography>
         <Typography variant="body1">
           <span className={classes.typeDiagram}>Tipo:</span> {tipo}

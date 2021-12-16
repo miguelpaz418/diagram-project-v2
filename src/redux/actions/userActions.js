@@ -7,10 +7,19 @@ import {
   LOADING_USER,
   LOADING_UI_GOOGLE,
   SEND_MAIL,
-  MARK_NOTIFICATIONS_READ
+  MARK_NOTIFICATIONS_READ,
+  GET_NOTIFICATION,
+  SET_FCM_TOKEN,
+  SET_DIAGRAM_UPDATE,
+  SET_COMMET_UPDATE,
+  CREATE_PROJECT
 } from "../types";
 import axios from "axios";
 import jwtDecode from "jwt-decode";
+//firebase
+import { getToken, onMessage } from "firebase/messaging";
+import { messaging } from "../../firebase";
+
 
 export const loginUser = (userData, history) => dispatch => {
   dispatch({ type: LOADING_UI });
@@ -20,6 +29,7 @@ export const loginUser = (userData, history) => dispatch => {
       setAuthorizationHeader(response.data.token);
       dispatch(getUserData());
       dispatch(exitApp());
+      dispatch(getTokenFCM());
       dispatch({ type: CLEAR_ERRORS });
       history.push("/dashboard");
     })
@@ -40,6 +50,8 @@ export const signupUser = (newUserData, history) => dispatch => {
       setAuthorizationHeader(response.data.token);
       dispatch(getUserData());
       dispatch(exitApp());
+      dispatch(getTokenFCM());
+      //dispatch(getNotification());
       dispatch({ type: CLEAR_ERRORS });
       history.push("/dashboard");
     })
@@ -59,6 +71,8 @@ export const signupUserWhitGoogle = (newUser, history) => dispatch => {
       setAuthorizationHeader(response.data.token);
       dispatch(getUserData());
       dispatch(exitApp());
+      dispatch(getTokenFCM());
+      //dispatch(getNotification());
       dispatch({ type: CLEAR_ERRORS });
       history.push("/dashboard");
     })
@@ -157,4 +171,97 @@ export const markNotificationsRead = notificationsIds => dispatch => {
     .catch(err => {
       console.log(err);
     });
+};
+
+export const getTokenFCM = () => dispatch => {
+
+  getToken(messaging, {vapidKey: process.env.REACT_APP_FIREBASE_VAPID_KEY}).then((currentToken) => {
+      if (currentToken) {
+        // Send the token to your server and update the UI if necessary
+        // ...console.log("token:: ", currentToken)
+        axios
+        .post(`/fcm/token/`, {token: currentToken})
+        .then(response => {
+
+          dispatch({
+            type: SET_FCM_TOKEN
+          });
+        })
+        .catch(err => console.log(err));
+      
+      } else {
+        // Show permission request UI
+        console.log('No registration token available. Request permission to generate one.');
+        // ...
+      }
+    }).catch((err) => {
+      console.log('An error occurred while retrieving token. ', err);
+      // ...
+  });
+};
+
+export const getNotification = () => dispatch => {
+
+  onMessage(messaging, (payload) => {
+      let type = payload.data.type
+      dispatch(getNotifications())
+      switch (type) {
+        case 'modify':
+          axios
+            .get(`/diagram/${payload.data.id}`)
+            .then(response => {
+              dispatch({
+                type: SET_DIAGRAM_UPDATE,
+                payload: response.data
+              });
+            })
+            .catch(err => {
+              console.log(err);
+            });
+          break;
+        case 'comment':
+          axios
+            .get(`/comment/${payload.data.id}`)
+            .then(response => {
+              dispatch({
+                type: SET_COMMET_UPDATE,
+                payload: response.data
+              });
+            })
+            .catch(err => {
+              console.log(err);
+            });
+          break;
+        case 'observer':
+          axios
+            .get(`/project/${payload.data.id}`)
+            .then(response => {
+              dispatch({
+                type: CREATE_PROJECT,
+                payload: response.data
+              });
+            })
+            .catch(err => {
+              console.log(err);
+            });
+          break;
+        default:
+          console.log("default")
+          break;
+      }
+  });
+
+};
+
+export const getNotifications = () => dispatch => {
+
+  axios
+    .get(`/notifications`)
+    .then(response => {
+      dispatch({
+        type: GET_NOTIFICATION,
+        payload: response.data
+      });
+    })
+    .catch(err => console.log(err));
 };

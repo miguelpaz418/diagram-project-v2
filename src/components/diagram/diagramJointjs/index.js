@@ -90,15 +90,25 @@ class ObjectDiagram extends Component {
 
   handleSubmit = e => {
     e.preventDefault();
-    var getDiagram = this.child.current.saveDiagram()
-    const updateDiagram = JSON.stringify(getDiagram);
-    const diagram = {
-      diagram: updateDiagram
-    };
-    const projectId = this.props.projectId;
-    const diagramId = this.props.diagramId;
-    this.props.saveDiagram(diagram, diagramId, projectId);
+    const {error, jsonData} = this.child.current.saveDiagram()
+    if(error){
+      const updateDiagram = JSON.stringify(jsonData);
+      const diagram = {
+        diagram: updateDiagram
+      };
+      const projectId = this.props.projectId;
+      const diagramId = this.props.diagramId;
+      this.props.saveDiagram(diagram, diagramId, projectId);
+    }
+
   };
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    if (prevProps.data.diagram.diagram !== this.props.data.diagram.diagram) {
+      let diagrama = JSON.parse(this.props.data.diagram.diagram)
+      this.child.current.updateDiagram(diagrama)
+    }
+}
 
 
   render() {
@@ -108,15 +118,22 @@ class ObjectDiagram extends Component {
         authenticated,
         credentials: { userId }
       },
+      data: {
+        diagram,
+      },
       diagramUserId
     } = this.props;
+
+
+    const reduxDiagram = JSON.parse(diagram.diagram);
+    const typeUser = diagramUserId === userId
 
     return (
       <>
         <div className={classes.diagram}>
           <CssBaseline />
           <div className={classes.diagramContainer}>
-            <Diagram ref={this.child} data={this.props.diagram} />
+            <Diagram ref={this.child} type={typeUser} data={reduxDiagram} />
             {authenticated && diagramUserId === userId ? (
               <Fab
                 title="guardar diagrama"
@@ -143,7 +160,8 @@ ObjectDiagram.propTypes = {
 };
 
 const mapStateToProps = state => ({
-  user: state.user
+  user: state.user,
+  data: state.data
 });
 
 export default connect(

@@ -6,14 +6,19 @@ import PropTypes from "prop-types";
 import withStyles from "@material-ui/core/styles/withStyles";
 // Panel
 import Panel from './panel'
-import {listOfActions} from './config-panel'
+import {getActions} from './config-panel'
 
 import { returnFigure, 
         constraintsObjects, 
-        undefinedToEmpty 
+        undefinedToEmpty,
+        filterValueOfArray,
+        addValueToArray,
+        getObjectsNames, 
+        allObjectsHaveNames 
     } from './functionsDiagram'
 
 import ObjectModal from './hardware/component';
+import MessageDialog from './messageDialog';
 import ActionModal from './action/component';
 import AttributeModal from './attribute/component';
 import ChipIconsAction from './action/chipIconsAction'
@@ -23,8 +28,6 @@ import ChipIconsAction from './action/chipIconsAction'
 import "jointjs/dist/joint.css";
 import "jointjs/css/layout.css";
 import "jointjs/css/themes/default.css";
-
-
 
 const styles = theme => ({
     ...theme.formTheme,
@@ -42,10 +45,12 @@ class Graph extends React.Component {
         this.namespace = joint.shapes; 
         this.graph = new joint.dia.Graph({},{ cellNamespace: this.namespace })
         this.data = this.props.data
+        this.type = this.props.type
         this.state = {
             op: false,
             op2: false,
             op3: false,
+            op4: false,
             selected: null,
             nameObject: "",
             attributeName: "",
@@ -54,6 +59,10 @@ class Graph extends React.Component {
             attributeType: "text",
             colorObject: "",
             colorName: "",
+            parentsActions: [],
+            namesObjects: [],
+            message: "",
+            errors: {}
         };
 
         var CustomLink = joint.shapes.standard.Link.define('standard.Link', {
@@ -68,6 +77,10 @@ class Graph extends React.Component {
 
         if(typeof this.data === 'object' && !Array.isArray(this.data)){
             this.graph.fromJSON(this.data, this.namespace);
+            this.zoomLevel = this.data.zoomLevel
+
+        }else{
+            this.zoomLevel = 1;
         }
         
         this.paper = new joint.dia.Paper({
@@ -88,10 +101,6 @@ class Graph extends React.Component {
                 color: '#EEEEEE'
             },     
             defaultConnectionPoint: { name: 'boundary' },
-            interactive: function(cellView) {
-                if (cellView.model.get('customLinkInteractions')) return { vertexAdd: false };
-                return true; // all interactions enabled
-            },
             linkView: joint.dia.LinkView.extend({
                 contextmenu: function(evt, x, y) {
                     if (this.model.get('customLinkInteractions')) {
@@ -105,20 +114,64 @@ class Graph extends React.Component {
             })
         });
 
-        // Event when connect a node using a link
-        // two object can't be joined
+
+
+        if(!this.type){    
+            this.paper.setInteractivity(false);
+        }else{
+            this.paper.setInteractivity(true);
+            this.interactivity()
+        }
+
+        this.zoomScale()
+
+        /** 
+        When a link is connected this function add the value of the action or attribute in the object
+        two objects can't be joined
+        */
         this.paper.on('link:connect', function(linkView, evt, targetView, connectedToView, magnetElement) {
 
-            const fuente = linkView.sourceView.el.attributes.ty.value
-            const destino = targetView.el.attributes.ty.value
-            const res = constraintsObjects(fuente,destino)
+            const fuente = linkView.sourceView.model
+            const destino = linkView.targetView.model
+            const { res, message} = constraintsObjects(fuente,destino)
+
+            let title = destino.attributes.attrs.root.title
             if(res){
                 linkView.model.remove()
+                this.handleOpenMessage(message)
+            }else{
+                fuente.embed(destino)
+                fuente.embed(linkView.model)
+                if(!title.includes("Seleccione")){
+                    addValueToArray(destino, fuente, title)                    
+                }
+
+
             }
+
+
+            
+        }.bind(this));
+
+        /** 
+        When a link is disconnected this function remove the value of the action or attribute in the object
+        */
+
+        this.paper.on('link:disconnect', function(linkView, evt, targetView, connectedToView, magnetElement) {
+
+            const fuente = linkView.sourceView.model
+            const destino = targetView.model
+            fuente.unembed(destino)
+            filterValueOfArray(destino, fuente)
             
         });
 
-        // Event when double click
+
+
+        /** 
+        Function for showing the related modal to the esterotipo
+        Event when double click
+        */
 
         this.paper.on('element:pointerdblclick', function(elementView, evt) {
 
@@ -129,27 +182,57 @@ class Graph extends React.Component {
             var attributeComplete = undefinedToEmpty(element.attr(['root', 'key']))
             var value = undefinedToEmpty(element.attr(['root', 'attrval']))
 
+            let parent = []
 
             switch (element.attributes.attrs.root.ty) {
                 case "action":
-                    this.changeShape(element, "", "", "", "", "", "")
+
+                    let actions = []
+
+                    parent = element.getParentCell()
+                    if(parent !== null){
+                        actions = parent.attributes.actions
+                    }
+                    this.changeShape(element, "", "", "", "", "", "", actions)
                     this.handleOpen();
                   break;
                 case "attribute":
                     if(nameObject !== undefined){
                         var attributeName = nameObject.split(":")[0]
                     }
-                    this.changeShape(element, nameObject, "", "", attributeComplete, value, attributeName)
+
+                    let attributes = []
+
+                    parent = element.getParentCell()
+                    if(parent !== null){
+                        attributes = parent.attributes.attributes
+                        let previousTitle = element.attributes.attrs.root.title
+                        if(!previousTitle.includes("Seleccione")){
+
+                            attributes = attributes.filter(function(ele){ 
+                                return ele !== previousTitle; 
+                            });
+                             
+                        }
+                    }
+                    this.changeShape(element, nameObject, "", "", attributeComplete, value, attributeName, attributes)
                     this.handleOpenAttribute();
                   break;
                 default:
-                    this.changeShape(element, nameObject, colorObject, colorName, "", "", "")
+                    let cells = this.graph.getCells()
+                    let names = getObjectsNames(cells, nameObject)
+                    if(names.length > 1){
+                        this.setState({
+                            namesObjects: names
+                        })
+                    }
+                    this.changeShape(element, nameObject, colorObject, colorName, "", "", "", "")
                     this.handleOpenObject();
                   break;
             }
         }.bind(this));
 
-        this.zoomLevel = 1;
+
 
         this.paper.on('link:snap:connect', function(linkView, evt, targetView) {
             targetView.vel.addClass('visible');
@@ -159,6 +242,84 @@ class Graph extends React.Component {
             targetView.vel.removeClass('visible');
         });
 
+        // Function for removing all tools when the mouse pointer is over the different figures (estereotipos)
+        this.paper.on('cell:mouseleave', function(cellView, elementView) {
+            cellView.removeTools();
+            cellView.vel.removeClass('visible');
+        });
+
+        this.paper.$el.prepend([
+            '<style>',
+            '#' + this.paper.svg.id + ' .joint-port { visibility: hidden }',
+            '#' + this.paper.svg.id + ' .visible .joint-port { visibility: visible; }',
+            '</style>'
+        ].join(' '));
+
+        this.paper.options.snapLinks = true;
+
+        // Function for adding all tools when the mouse pointer is over link 
+        this.paper.on('link:mouseenter', function(linkView) {
+            var verticesTool = new joint.linkTools.Vertices();
+            var segmentsTool = new joint.linkTools.Segments();
+            var sourceArrowheadTool = new joint.linkTools.SourceArrowhead();
+            var targetArrowheadTool = new joint.linkTools.TargetArrowhead();
+            var sourceAnchorTool = new joint.linkTools.SourceAnchor();
+            var targetAnchorTool = new joint.linkTools.TargetAnchor();
+            var boundaryTool = new joint.linkTools.Boundary();
+            var removeButton = new joint.linkTools.Remove({
+                action: function(evt, linkView, toolView) {
+                    linkView.model.remove({ ui: true, tool: toolView.cid });
+                    if(linkView.targetView !== null){
+                        let destino = linkView.targetView.model
+                        let fuente = linkView.sourceView.model
+                        fuente.unembed(destino)
+                        filterValueOfArray(destino, fuente)
+                    }
+                    
+                }
+            });
+
+            var toolsView = new joint.dia.ToolsView({
+                tools: [
+                    verticesTool, segmentsTool,
+                    sourceArrowheadTool, targetArrowheadTool,
+                    sourceAnchorTool, targetAnchorTool,
+                    boundaryTool, removeButton
+                ]
+            });
+            linkView.addTools(toolsView);
+        });
+
+        // Function for removing all tools when the mouse pointer is over link 
+        this.paper.on('link:mouseleave', function(linkView) {
+            linkView.removeTools();
+        });
+        
+
+    }
+
+    /** 
+    Function for saving the last changes in the diagram
+    Diagram type 1:  all objects have to have name
+    */
+
+    saveDiagram = () => {
+        this.graph.set('graphCustomProperty', true);
+        this.graph.set('graphExportTime', Date.now());
+        this.graph.set('zoomLevel', this.zoomLevel);
+        let cells = this.graph.getCells()
+        let error = allObjectsHaveNames(cells)
+        let jsonData = this.graph.toJSON();
+        if(!error){
+            let message = "Todos los objetos en el diagrama deben de tener nombre"
+            this.handleOpenMessage(message)
+        }
+        return {error, jsonData}
+    }
+    /** 
+    Function for adding all tools when the mouse pointer is over the different figures (estereotipos)
+    */
+    interactivity = () =>{ 
         this.paper.on('element:mouseenter', function(elementView, targetView) {
             var model = elementView.model;
             var bbox = model.getBBox();
@@ -178,84 +339,49 @@ class Graph extends React.Component {
                         useModelGeometry: true,
                         y: coorY,
                         x: coorX,
-                        offset: offset
+                        offset: offset,
+                        action: function(evt, elementView, toolView) {
+                            let parent = elementView.model.getParentCell()
+                            elementView.model.remove({ ui: true, tool: toolView.cid });
+                            if(parent !== null){
+                                let destino = elementView.model
+                                filterValueOfArray(destino, parent)
+                            }
+                        }
                     })
                 ]
             }));
         });
-
-        this.paper.on('cell:mouseleave', function(cellView, elementView) {
-            cellView.removeTools();
-            cellView.vel.removeClass('visible');
-        });
-
-        this.paper.$el.prepend([
-            '<style>',
-            '#' + this.paper.svg.id + ' .joint-port { visibility: hidden }',
-            '#' + this.paper.svg.id + ' .visible .joint-port { visibility: visible; }',
-            '</style>'
-        ].join(' '));
-
-        this.paper.options.snapLinks = true;
-
-
-        this.paper.on('link:mouseenter', function(linkView) {
-            var verticesTool = new joint.linkTools.Vertices();
-            var segmentsTool = new joint.linkTools.Segments();
-            var sourceArrowheadTool = new joint.linkTools.SourceArrowhead();
-            var targetArrowheadTool = new joint.linkTools.TargetArrowhead();
-            var sourceAnchorTool = new joint.linkTools.SourceAnchor();
-            var targetAnchorTool = new joint.linkTools.TargetAnchor();
-            var boundaryTool = new joint.linkTools.Boundary();
-            var removeButton = new joint.linkTools.Remove();
-
-
-            var toolsView = new joint.dia.ToolsView({
-                tools: [
-                    verticesTool, segmentsTool,
-                    sourceArrowheadTool, targetArrowheadTool,
-                    sourceAnchorTool, targetAnchorTool,
-                    boundaryTool, removeButton
-                ]
-            });
-            linkView.addTools(toolsView);
-        });
-        
-        this.paper.on('link:mouseleave', function(linkView) {
-            linkView.removeTools();
-        });
-
     }
 
-    saveDiagram = () => {
-        this.graph.set('graphCustomProperty', true);
-        this.graph.set('graphExportTime', Date.now());
-        var jsonData = this.graph.toJSON();
-        return jsonData
+    updateDiagram = (diagrama) => {
+        this.graph.fromJSON(diagrama, this.namespace);
     }
 
     zoomIn = () => {
         this.zoomLevel = Math.min(3, this.zoomLevel + 0.2);
-        var size = this.paper.getComputedSize();
-        this.paper.translate(0,0);
-        this.paper.scale(this.zoomLevel, this.zoomLevel, size.width / 2, size.height / 2);
+        this.zoomScale()
     }
 
     zoomOut = () => {
         this.zoomLevel = Math.max(0.2, this.zoomLevel - 0.2);
+        this.zoomScale()
+    }
+
+    zoomScale = () => {
         var size = this.paper.getComputedSize();
         this.paper.translate(0,0);
         this.paper.scale(this.zoomLevel, this.zoomLevel, size.width / 2, size.height / 2);
     }
 
     addFigure = (type) => {
-        returnFigure(this.graph,type)
+        returnFigure(this.graph,type, this.zoomOut, this.zoomIn)
     }  
 
-    changeShape = (shape, nameObject, colorObject, colorName, attributeComplete, value, attributeName) => {
+    changeShape = (shape, nameObject, colorObject, colorName, attributeComplete, value, attributeName, actions) => {
         var attributeType = "text"
         attributeType = attributeComplete.split("-")[1]
-
+        
         this.setState({
           selected: shape,
           nameObject: nameObject,
@@ -265,6 +391,7 @@ class Graph extends React.Component {
           value: value,
           attributeName: attributeName,
           attributeType: attributeType,
+          parentsActions: actions
         });
 
     };
@@ -286,11 +413,34 @@ class Graph extends React.Component {
 
         var element = this.state.selected
         var svgFile = ChipIconsAction(data)
+        //si ta tenia uno y cambia 
+        //si no tenia y se le adiciona
+        let previousTitle = element.attributes.attrs.root.title
         element.attr('image/xlinkHref', 'data:image/svg+xml;utf8,' + encodeURIComponent(svgFile));
+        element.attr('root/title', data);
+        //element.prop('action', [data]);
+        let parent = element.getParentCell()
+
+        if(parent !== null){
+
+            let actions = parent.attributes.actions
+            if(!previousTitle.includes("Seleccione")){
+
+                actions = actions.filter(function(ele){ 
+                    return ele !== previousTitle; 
+                });
+                 
+            }
+            actions.push(data)
+            parent.prop('actions', actions);
+            
+        }
+        
         this.setState({
             selected: null,
             nameObject: "",
             op: false,
+            parentsActions: []
         });
     };
 
@@ -302,7 +452,8 @@ class Graph extends React.Component {
 
     handleCloseObject = () => {
         this.setState({
-            op2: false
+            op2: false,
+            errors: {}
           });
     };
 
@@ -323,18 +474,34 @@ class Graph extends React.Component {
 
         var text = this.state.nameObject
         var element = this.state.selected
+        let errors = {};
         if (text !== null) {
-            element.attr({
-                label: { text: this.state.nameObject, fill: this.state.colorName },
-                body: { fill: this.state.colorObject }
-            });
-            this.setState({
-                selected: null,
-                nameObject: "",
-                colorObject: "",
-                colorName: "",
-                op2: false,
-            });
+            if (this.state.namesObjects.includes(text.toLowerCase())){
+                errors.nameObject = "name is already used";
+                this.setState({
+                    errors: errors
+                });
+
+            }else if(text === ""){
+                errors.nameObject = "Must not be empty";
+                this.setState({
+                    errors: errors
+                });
+            }else{
+                element.attr({
+                    label: { text: this.state.nameObject, fill: this.state.colorName },
+                    body: { fill: this.state.colorObject }
+                });
+                this.setState({
+                    selected: null,
+                    nameObject: "",
+                    colorObject: "",
+                    colorName: "",
+                    op2: false,
+                    errors: {}
+                });
+            }
+
         }
     };
 
@@ -351,16 +518,50 @@ class Graph extends React.Component {
           });
     };
 
+    handleOpenMessage = (message) => {
+        this.setState({
+          op4: true,
+          message: message
+        });
+    };
+
+    handleCloseMessage = () => {
+        this.setState({
+            op4: false,
+            message: ""
+          });
+    };
+
+
     handleClickAttribute = event => {
         event.preventDefault();
-        var text = this.state.attributeName + ': ' + this.state.value
         var element = this.state.selected
+        let previousTitle = element.attributes.attrs.root.title
+        var text = this.state.attributeName + ': ' + this.state.value
         if (text !== null) {
             element.attr({
                 label: { text: text },
-                root: { key: this.state.attributeComplete,
-                    attrval: this.state.value}
+                root: { 
+                    key: this.state.attributeComplete,
+                    attrval: this.state.value,
+                    title: this.state.attributeName
+                }
             });
+            //element.prop('action', [data]);
+            let parent = element.getParentCell()
+            if(parent !== null){
+                let attributes = parent.attributes.attributes
+                if(!previousTitle.includes("Seleccione")){
+
+                    attributes = attributes.filter(function(ele){ 
+                        return ele !== previousTitle; 
+                    });
+                    
+                }
+                attributes.push(this.state.attributeName)
+                parent.prop('attributes', attributes);
+            }
+
             this.setState({
                 selected: null,
                 attributeName: "",
@@ -397,7 +598,20 @@ class Graph extends React.Component {
     };
 
     render() {
-        const { classes } = this.props;
+        const { classes, type } = this.props;
+        let listOfActions = []
+        if(type){
+            listOfActions = getActions("coordinado")
+            if(this.paper !== undefined){
+                this.paper.setInteractivity(true);
+                this.interactivity()
+            }
+        }else{
+            listOfActions = getActions("observer")
+            if(this.paper !== undefined){
+                this.paper.setInteractivity(false);
+            }
+        }
 
         return (
             <div className={classes.root}>
@@ -408,6 +622,7 @@ class Graph extends React.Component {
                     handleOpen={this.handleOpen} 
                     handleClose={this.handleClose} 
                     handleClick={this.handleClick}
+                    parentsActions={this.state.parentsActions}
                 />
                 <ObjectModal 
                     open={this.state.op2} 
@@ -419,6 +634,7 @@ class Graph extends React.Component {
                     nameObject={this.state.nameObject} 
                     colorObject={this.state.colorObject} 
                     colorName={this.state.colorName}
+                    errors={this.state.errors}
                 />
                 <AttributeModal 
                     open={this.state.op3} 
@@ -429,6 +645,13 @@ class Graph extends React.Component {
                     handleChange2={this.handleChange2Attribute}  
                     attributeComplete= {this.state.attributeComplete} 
                     value={this.state.value}
+                    parentsAttributes={this.state.parentsActions}
+                />
+                <MessageDialog 
+                    open={this.state.op4} 
+                    handleOpen={this.handleOpenMessage} 
+                    handleClose={this.handleCloseMessage}
+                    message={this.state.message}
                 />
             </div>
         );

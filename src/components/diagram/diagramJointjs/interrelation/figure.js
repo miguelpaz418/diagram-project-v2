@@ -5,7 +5,7 @@ export default function Hardware() {
     var portAttrs = { circle: { r: 5, magnet: true, fill: '#ffffff', stroke: 'gray' }};
 
     var rect2 = new joint.shapes.standard.EmbeddedImage({
-        position: { x: 60, y: 20 },
+        position: { x: 450, y: 250 },
         size: { width: 100, height: 45 },
         attrs: {
             root: {

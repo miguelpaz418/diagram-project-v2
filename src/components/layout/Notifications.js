@@ -10,6 +10,9 @@ import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
 import Typography from "@material-ui/core/Typography";
 import Badge from "@material-ui/core/Badge";
+
+import Box from '@material-ui/core/Box';
+import Divider from "@material-ui/core/Divider";
 // Icons
 import {
   Bell,
@@ -27,19 +30,26 @@ class Notifications extends Component {
   };
   handleOpen = event => {
     this.setState({ anchorEl: event.target });
+    this.onMenuOpened()
   };
   handleClose = () => {
     this.setState({ anchorEl: null });
   };
   onMenuOpened = () => {
+
     let unreadNotificationsIds = this.props.notifications
       .filter(noti => !noti.read)
       .map(noti => noti.notificationId);
-    this.props.markNotificationsRead(unreadNotificationsIds);
+    if(unreadNotificationsIds.length > 0 ){
+      this.props.markNotificationsRead(unreadNotificationsIds);
+    }
+
+
   };
   render() {
     const notifications = this.props.notifications;
     const anchorEl = this.state.anchorEl;
+    const totalUnRead = notifications.filter((item) => item.read === false).length;
 
     dayjs.extend(relativeTime);
 
@@ -49,7 +59,7 @@ class Notifications extends Component {
         ? (notificationsIcon = (
             <Badge
               badgeContent={
-                notifications.filter(noti => noti.read === false).length
+                totalUnRead
               }
               color="error"
             >
@@ -60,17 +70,23 @@ class Notifications extends Component {
     } else {
       notificationsIcon = <Bell style={{ color: "#fff" }} />;
     }
+    let boxNotification =         
+    <Box sx={{ display: 'flex', alignItems: 'center', py: 2, px: 2.5 }}>
+      <Box sx={{ flexGrow: 1 }}>
+        <Typography variant="subtitle1">Notificaciones</Typography>
+        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          Tienes {totalUnRead} notificaciones sin leer
+        </Typography>
+      </Box>
+      <Divider />
+    </Box>
     let notificationsMarkup =
       notifications && notifications.length > 0 ? (
-        notifications.map(noti => {
-          const verb =
-            noti.type === "observer"
-              ? "te agregó como observador en su nuevo proyecto"
-              : "comentó en uno de tus diagramas";
-          const time = dayjs(noti.createdAt).fromNow();
-          const iconColor = noti.read ? "secondary" : "primary";
+        notifications.map((notification, index) => {
+          const time = dayjs(notification.createdAt).fromNow();
+          const iconColor = notification.read ? "secondary" : "primary";
           const icon =
-            noti.type === "observer" ? (
+          notification.type === "observer" ? (
               <AccountMultiplePlus
                 color={iconColor}
                 style={{ marginRight: 10 }}
@@ -78,22 +94,27 @@ class Notifications extends Component {
             ) : (
               <CommentText color={iconColor} style={{ marginRight: 10 }} />
             );
-          const path =
-            noti.type === "observer"
-              ? `/project/${noti.projectId}`
-              : `/project/${noti.projectId}/diagram/${noti.diagramId}`;
+
+        const path =
+            notification.type === "observer"
+              ? `/project/${notification.projectId}`
+              : `/project/${notification.projectId}/diagram/${notification.diagramId}`;
+
 
           return (
-            <MenuItem key={noti.createdAt} onClick={this.handleClose}>
+            
+            <MenuItem key={index} onClick={this.handleClose}>
               {icon}
               <Typography
-                component={Link}
-                variant="body2"
-                to={path}
+                variant="subtitle2"
                 color="textPrimary"
+                component={Link}
+                to={path}
               >
-                <span style={{ fontWeight: "bold" }}>{noti.sender}</span> {verb}
-                <br />
+                {notification.title}
+                <Typography variant="body2" color="textSecondary">
+                   {notification.description}
+                </Typography>
                 <Typography variant="caption">{time}</Typography>
               </Typography>
             </MenuItem>
@@ -101,7 +122,7 @@ class Notifications extends Component {
         })
       ) : (
         <MenuItem onClick={this.handleClose}>
-          Aun no tienes notificaciones
+
         </MenuItem>
       );
     return (
@@ -120,6 +141,7 @@ class Notifications extends Component {
           open={Boolean(anchorEl)}
           onClose={this.handleClose}
         >
+          {boxNotification}
           {notificationsMarkup}
         </Menu>
       </Fragment>

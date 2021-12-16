@@ -3,13 +3,17 @@ import {
   SET_AUTHENTICATED,
   SET_UNAUTHENTICATED,
   LOADING_USER,
-  MARK_NOTIFICATIONS_READ
+  MARK_NOTIFICATIONS_READ,
+  GET_NOTIFICATION,
+  GET_NOTIFICATIONS,
+  SET_FCM_TOKEN
 } from "../types";
 
 const initialState = {
   authenticated: false,
   loading: false,
-  credentials: {}
+  credentials: {},
+  notifications: []
 };
 
 export default function(state = initialState, action) {
@@ -36,6 +40,20 @@ export default function(state = initialState, action) {
       state.notifications.forEach(notification => (notification.read = true));
       return {
         ...state
+      };
+    case GET_NOTIFICATION:
+      return {
+        ...state,
+        notifications:  [action.payload, ...state.notifications]
+      };
+    case GET_NOTIFICATIONS:
+      return {
+        ...state,
+        notifications: action.payload
+      };
+    case SET_FCM_TOKEN:
+      return {
+        ...state,
       };
     default:
       return state;

@@ -111,7 +111,7 @@ class AttributeComponent extends React.PureComponent {
   
 
   render() {
-    const { classes } = this.props;
+    const { classes, parentsAttributes } = this.props;
     //get the attributes from data in redux
     const { attributes } = this.props.data;
     return (
@@ -127,11 +127,15 @@ class AttributeComponent extends React.PureComponent {
                   onChange={this.props.handleChange}
                   fullWidth
                 >
-                  {attributes.map((option) => (
-                    <MenuItem key={option.id} value={option.id+"-"+option.type}>
-                      {option.name}
-                    </MenuItem>
-                  ))}
+                  {attributes && attributes.map((option) => {
+                    if(!parentsAttributes.includes(option.name)){
+                      return (
+                        <MenuItem key={option.id} value={option.id+"-"+option.type}>
+                          {option.name}
+                        </MenuItem>
+                      );
+                    }
+                  })}
                 </Select>
               </FormControl>
               <TextField
