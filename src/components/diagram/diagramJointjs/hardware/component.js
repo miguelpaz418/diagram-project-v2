@@ -108,8 +108,8 @@ class ObjectComponent extends React.PureComponent {
                 onChange={this.props.handleChange}
                 value={this.props.nameObject}
                 fullWidth
-                error={this.state.errors.nameObject ? true : false}
-                helperText={this.state.errors.nameObject}
+                error={this.props.errors.nameObject ? true : false}
+                helperText={this.props.errors.nameObject}
               />
               <div>
                 <InputLabel shrink={true} >Color de fondo</InputLabel >

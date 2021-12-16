@@ -9,7 +9,9 @@ import {
   DELETE_DIAGRAM,
   SET_DIAGRAM,
   SUBMIT_COMMENT,
-  GET_ATTRIBUTES
+  GET_ATTRIBUTES,
+  SET_DIAGRAM_UPDATE,
+  SET_COMMET_UPDATE
 } from "../types";
 
 const initialState = {
@@ -17,7 +19,7 @@ const initialState = {
   projects: [],
   project: {},
   diagram: {},
-  attributes: {},
+  attributes: [],
   loading: false
 };
 
@@ -92,6 +94,25 @@ export default function(state = initialState, action) {
       return {
         ...state,
         attributes: action.payload
+      };
+    case SET_DIAGRAM_UPDATE:
+      let newDiagram = {}
+      if(Object.keys(state.diagram).length === 0){
+        return state;
+      }else{
+        newDiagram = state.diagram.diagramId === action.payload.diagramId ? action.payload : state.diagram
+      }
+      return {
+        ...state,
+        diagram: newDiagram
+      };
+    case SET_COMMET_UPDATE:
+      return {
+        ...state,
+        diagram: {
+          ...state.diagram,
+          comments: [action.payload, ...state.diagram.comments]
+        }
       };
     default:
       return state;

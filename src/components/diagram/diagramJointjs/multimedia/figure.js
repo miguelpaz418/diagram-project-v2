@@ -5,7 +5,7 @@ export default function Hardware() {
     var portAttrs = { circle: { r: 5, magnet: true, fill: '#ffffff', stroke: 'gray' }};
 
     var rect2 =  new joint.shapes.standard.Polygon({
-        position: { x: 60, y: 20 },
+        position: { x: 450, y: 250 },
         size: { width: 75, height: 75 },
         attrs: {
             root: {
@@ -32,6 +32,8 @@ export default function Hardware() {
                 fontWeight: 'bold',
             }
         },
+        actions: [],
+        attributes: [],
         ports: {
             groups: {
                 left: { position: 'left', attrs: portAttrs },

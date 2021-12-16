@@ -15,6 +15,7 @@ import CreateProject from "../components/project/CreateProject";
 //Redux
 import { connect } from "react-redux";
 import { getProjects } from "../redux/actions/dataActions";
+import { getNotification } from "../redux/actions/userActions"
 
 const styles = theme => ({
   ...theme.formTheme,
@@ -34,6 +35,7 @@ class dashboard extends Component {
 
   componentDidMount() {
     this.props.getProjects();
+    this.props.getNotification();
   }
   render() {
     const { activeIndex } = this.state;
@@ -124,5 +126,5 @@ const mapStateToProps = state => ({
 
 export default connect(
   mapStateToProps,
-  { getProjects }
+  { getProjects, getNotification }
 )(withStyles(styles)(dashboard));
