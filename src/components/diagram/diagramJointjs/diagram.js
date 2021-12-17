@@ -14,7 +14,8 @@ import { returnFigure,
         filterValueOfArray,
         addValueToArray,
         getObjectsNames, 
-        allObjectsHaveNames 
+        allObjectsHaveNames,
+        changeValueToArray
     } from './functionsDiagram'
 
 import ObjectModal from './hardware/component';
@@ -114,8 +115,6 @@ class Graph extends React.Component {
             })
         });
 
-
-
         if(!this.type){    
             this.paper.setInteractivity(false);
         }else{
@@ -134,8 +133,8 @@ class Graph extends React.Component {
             const fuente = linkView.sourceView.model
             const destino = linkView.targetView.model
             const { res, message} = constraintsObjects(fuente,destino)
-
             let title = destino.attributes.attrs.root.title
+
             if(res){
                 linkView.model.remove()
                 this.handleOpenMessage(message)
@@ -145,12 +144,7 @@ class Graph extends React.Component {
                 if(!title.includes("Seleccione")){
                     addValueToArray(destino, fuente, title)                    
                 }
-
-
             }
-
-
-            
         }.bind(this));
 
         /** 
@@ -158,12 +152,10 @@ class Graph extends React.Component {
         */
 
         this.paper.on('link:disconnect', function(linkView, evt, targetView, connectedToView, magnetElement) {
-
             const fuente = linkView.sourceView.model
             const destino = targetView.model
             fuente.unembed(destino)
             filterValueOfArray(destino, fuente)
-            
         });
 
 
@@ -181,14 +173,11 @@ class Graph extends React.Component {
             var colorObject = undefinedToEmpty(element.attr(['body', 'fill']))
             var attributeComplete = undefinedToEmpty(element.attr(['root', 'key']))
             var value = undefinedToEmpty(element.attr(['root', 'attrval']))
-
             let parent = []
 
-            switch (element.attributes.attrs.root.ty) {
+            switch (element.attributes.class) {
                 case "action":
-
                     let actions = []
-
                     parent = element.getParentCell()
                     if(parent !== null){
                         actions = parent.attributes.actions
@@ -200,15 +189,12 @@ class Graph extends React.Component {
                     if(nameObject !== undefined){
                         var attributeName = nameObject.split(":")[0]
                     }
-
                     let attributes = []
-
                     parent = element.getParentCell()
                     if(parent !== null){
                         attributes = parent.attributes.attributes
                         let previousTitle = element.attributes.attrs.root.title
                         if(!previousTitle.includes("Seleccione")){
-
                             attributes = attributes.filter(function(ele){ 
                                 return ele !== previousTitle; 
                             });
@@ -220,8 +206,9 @@ class Graph extends React.Component {
                   break;
                 default:
                     let cells = this.graph.getCells()
+                    console.log(cells)
                     let names = getObjectsNames(cells, nameObject)
-                    if(names.length > 1){
+                    if(names.length > 0){
                         this.setState({
                             namesObjects: names
                         })
@@ -316,6 +303,7 @@ class Graph extends React.Component {
         }
         return {error, jsonData}
     }
+
     /** 
     Function for adding all tools when the mouse pointer is over the different figures (estereotipos)
     */
@@ -413,27 +401,13 @@ class Graph extends React.Component {
 
         var element = this.state.selected
         var svgFile = ChipIconsAction(data)
-        //si ta tenia uno y cambia 
-        //si no tenia y se le adiciona
         let previousTitle = element.attributes.attrs.root.title
         element.attr('image/xlinkHref', 'data:image/svg+xml;utf8,' + encodeURIComponent(svgFile));
         element.attr('root/title', data);
-        //element.prop('action', [data]);
         let parent = element.getParentCell()
 
         if(parent !== null){
-
-            let actions = parent.attributes.actions
-            if(!previousTitle.includes("Seleccione")){
-
-                actions = actions.filter(function(ele){ 
-                    return ele !== previousTitle; 
-                });
-                 
-            }
-            actions.push(data)
-            parent.prop('actions', actions);
-            
+            changeValueToArray (parent, previousTitle, data, "actions")
         }
         
         this.setState({
@@ -464,6 +438,7 @@ class Graph extends React.Component {
     };
 
     handleChange2 = (event,name) => {
+        console.log(event)
         this.setState({
             [name]: event.css.backgroundColor
         });
@@ -471,7 +446,6 @@ class Graph extends React.Component {
 
     handleClickObject = (event) => {
         event.preventDefault();
-
         var text = this.state.nameObject
         var element = this.state.selected
         let errors = {};
@@ -490,6 +464,7 @@ class Graph extends React.Component {
             }else{
                 element.attr({
                     label: { text: this.state.nameObject, fill: this.state.colorName },
+                    root: { labelcolor: this.state.colorName },
                     body: { fill: this.state.colorObject }
                 });
                 this.setState({
@@ -547,19 +522,9 @@ class Graph extends React.Component {
                     title: this.state.attributeName
                 }
             });
-            //element.prop('action', [data]);
             let parent = element.getParentCell()
             if(parent !== null){
-                let attributes = parent.attributes.attributes
-                if(!previousTitle.includes("Seleccione")){
-
-                    attributes = attributes.filter(function(ele){ 
-                        return ele !== previousTitle; 
-                    });
-                    
-                }
-                attributes.push(this.state.attributeName)
-                parent.prop('attributes', attributes);
+                changeValueToArray (parent, previousTitle, this.state.attributeName, "attributes")
             }
 
             this.setState({

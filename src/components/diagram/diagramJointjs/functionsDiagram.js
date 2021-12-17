@@ -40,8 +40,8 @@ function returnFigure (graph,type,zoomOut,zoomIn) {
 function constraintsObjects (fuente,destino) {
     let res = false
     let message = ""
-    const tyFuente = fuente.attributes.attrs.root.ty
-    const tyDestino = destino.attributes.attrs.root.ty
+    const tyFuente = fuente.attributes.class
+    const tyDestino = destino.attributes.class
     const parent = destino.getParentCell()
     const title = destino.attributes.attrs.root.title
     const actions = fuente.attributes.actions
@@ -84,7 +84,7 @@ function undefinedToEmpty (string)  {
 
 function filterValueOfArray (destino, fuente)  {
 
-    if(destino.attributes.attrs.root.ty === "action"){
+    if(destino.attributes.class === "action"){
         let actions = fuente.attributes.actions
         let action = destino.attributes.attrs.root.title
         let newActions = actions.filter(function(element){ 
@@ -92,7 +92,7 @@ function filterValueOfArray (destino, fuente)  {
         });
     
         fuente.prop('actions', newActions);
-    }else if(destino.attributes.attrs.root.ty === "attribute"){
+    }else if(destino.attributes.class === "attribute"){
         let attributes = fuente.attributes.attributes
         let attribute = destino.attributes.attrs.root.title
         let newAttributes = attributes.filter(function(element){ 
@@ -105,16 +105,42 @@ function filterValueOfArray (destino, fuente)  {
 
 function addValueToArray (destino, fuente, title)  {
 
-    if(destino.attributes.attrs.root.ty === "action"){
+    if(destino.attributes.class === "action"){
         let actions = fuente.attributes.actions
         actions.push(title)
         fuente.prop('actions', actions);
-    }else if(destino.attributes.attrs.root.ty === "attribute"){
+    }else if(destino.attributes.class === "attribute"){
         let attributes = fuente.attributes.attributes
         attributes.push(title)
         fuente.prop('attributes', attributes);
     }
 
+};
+
+function changeValueToArray (parent, previousTitle, title, typeArray)  {
+
+    let array = []
+    switch (typeArray) {
+        case "actions":
+            array = parent.attributes.actions
+        break;
+        case "attributes":
+            array = parent.attributes.attributes
+        break;
+        default:
+            console.log("default")
+            return
+    }
+
+    if(!previousTitle.includes("Seleccione")){
+
+        array = array.filter(function(element){ 
+            return element !== previousTitle; 
+        });
+         
+    }
+    array.push(title)
+    parent.prop(typeArray, array);
 };
 
 function getObjectsNames (cells, nameObject)  {
@@ -124,6 +150,7 @@ function getObjectsNames (cells, nameObject)  {
             let type = undefinedToEmpty(element.attr(['root', 'ty']))
             if(type === "object" ){
                 let name = undefinedToEmpty(element.attr(['label', 'text']))
+                console.log("nombre del objecto: ", name)
                 if(name !== nameObject && name !== ""){
                     names.push(name.toLowerCase())
                 }
@@ -131,6 +158,7 @@ function getObjectsNames (cells, nameObject)  {
             }
         });
     }
+    console.log("resultante ", names)
     return names
 }
 
@@ -150,14 +178,12 @@ function allObjectsHaveNames (cells) {
     return res
 }
 
-
-
-
 export { returnFigure, 
     constraintsObjects, 
     undefinedToEmpty, 
     filterValueOfArray, 
     addValueToArray, 
     getObjectsNames, 
-    allObjectsHaveNames 
+    allObjectsHaveNames,
+    changeValueToArray
 };

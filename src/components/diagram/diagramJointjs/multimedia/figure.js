@@ -1,16 +1,18 @@
 import * as joint from 'jointjs';
 
-export default function Hardware() {
+export default function Multimedia() {
 
     var portAttrs = { circle: { r: 5, magnet: true, fill: '#ffffff', stroke: 'gray' }};
 
     var rect2 =  new joint.shapes.standard.Polygon({
         position: { x: 450, y: 250 },
         size: { width: 75, height: 75 },
+        class: 'object',
         attrs: {
             root: {
                 tabindex: 5,
                 ty: 'object',
+                labelcolor: '#333333',
                 removey: '25%',
                 removex: '75%',
                 title: 'Objecto multimedia'
@@ -30,6 +32,7 @@ export default function Hardware() {
                 },
                 fontSize: 12,
                 fontWeight: 'bold',
+                fill: '#333333',
             }
         },
         actions: [],

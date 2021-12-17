@@ -1,12 +1,13 @@
 import * as joint from 'jointjs';
 
-export default function Hardware() {
+export default function Reaction() {
 
     var portAttrs = { circle: { r: 5, magnet: true, fill: '#ffffff', stroke: 'gray' }};
 
     var rect2 = new joint.shapes.standard.Path({
         position: { x: 60, y: 20 },
         size: { width: 100, height: 90 },
+        class: 'reaction',
         attrs: {            
             root: {
                 tabindex: 2,

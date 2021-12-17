@@ -5,10 +5,10 @@ export default function Attribute() {
     var rect2 = new joint.shapes.standard.Rectangle({
         position: { x: 450, y: 250 },
         size: { width: 100, height: 80 },
+        class: 'attribute',
         attrs: {
             root: {
                 tabindex: 2,
-                ty: 'attribute',
                 key: '',
                 attrval: '',
                 removey: '0%',

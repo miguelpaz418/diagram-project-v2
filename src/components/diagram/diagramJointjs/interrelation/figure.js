@@ -1,12 +1,13 @@
 import * as joint from 'jointjs';
 
-export default function Hardware() {
+export default function Interrelation() {
 
     var portAttrs = { circle: { r: 5, magnet: true, fill: '#ffffff', stroke: 'gray' }};
 
     var rect2 = new joint.shapes.standard.EmbeddedImage({
         position: { x: 450, y: 250 },
         size: { width: 100, height: 45 },
+        class: 'interrelation',
         attrs: {
             root: {
                 tabindex: 2,
