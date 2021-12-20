@@ -3,6 +3,7 @@ import Passive from './passive/figure';
 import Multimedia from './multimedia/figure';
 import Action from './action/figure';
 import Attribute from './attribute/figure';
+import Interaction from "./interaction/figure";
 
 function returnFigure (graph,type,zoomOut,zoomIn) {
     var figure = null;
@@ -21,6 +22,9 @@ function returnFigure (graph,type,zoomOut,zoomIn) {
         break;
         case "attribute":
             figure = Attribute()
+        break;
+        case "interaction":
+            figure = Interaction()
         break;
         case "out":
             zoomOut()
@@ -147,10 +151,9 @@ function getObjectsNames (cells, nameObject)  {
     let names = []
     if(cells.length > 0){
         cells.forEach(element => {
-            let type = undefinedToEmpty(element.attr(['root', 'ty']))
+            let type = undefinedToEmpty(element.attributes.class)
             if(type === "object" ){
                 let name = undefinedToEmpty(element.attr(['label', 'text']))
-                console.log("nombre del objecto: ", name)
                 if(name !== nameObject && name !== ""){
                     names.push(name.toLowerCase())
                 }
@@ -158,7 +161,6 @@ function getObjectsNames (cells, nameObject)  {
             }
         });
     }
-    console.log("resultante ", names)
     return names
 }
 
@@ -166,7 +168,7 @@ function allObjectsHaveNames (cells) {
     let res = true
     if(cells.length > 0){
         cells.forEach(element => {
-            let type = undefinedToEmpty(element.attr(['root', 'ty']))
+            let type = undefinedToEmpty(element.attributes.class)
             if(type === "object" ){
                 var name = undefinedToEmpty(element.attr(['label', 'text']))
                 if(name === ""){

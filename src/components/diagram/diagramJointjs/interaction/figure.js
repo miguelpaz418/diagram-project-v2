@@ -11,6 +11,8 @@ export default function Interaction() {
         attrs: {
             root: {
                 tabindex: 2,
+                removey: '0%',
+                removex: '100%',
                 title: 'Seleccione una interacción'
             },
             body: {

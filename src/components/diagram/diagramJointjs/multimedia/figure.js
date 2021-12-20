@@ -11,7 +11,6 @@ export default function Multimedia() {
         attrs: {
             root: {
                 tabindex: 5,
-                ty: 'object',
                 labelcolor: '#333333',
                 removey: '25%',
                 removex: '75%',
