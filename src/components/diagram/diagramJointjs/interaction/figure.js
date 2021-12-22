@@ -1,15 +1,18 @@
 import * as joint from 'jointjs';
 
-export default function Hardware() {
+export default function Interaction() {
 
     var portAttrs = { circle: { r: 5, magnet: true, fill: '#ffffff', stroke: 'gray' }};
 
     var rect2 = new joint.shapes.standard.EmbeddedImage({
         position: { x: 450, y: 250 },
         size: { width: 60, height: 45 },
+        class: 'interaction',
         attrs: {
             root: {
                 tabindex: 2,
+                removey: '0%',
+                removex: '100%',
                 title: 'Seleccione una interacción'
             },
             body: {

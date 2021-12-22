@@ -1,15 +1,17 @@
 import * as joint from 'jointjs';
 
-export default function Hardware() {
+export default function Passive() {
 
     var portAttrs = { circle: { r: 5, magnet: true, fill: '#ffffff', stroke: 'gray' }};
     var rect2 = new joint.shapes.standard.Rectangle({
         position: { x: 450, y: 250 },
         size: { width: 75, height: 75 },
+        class: 'object',
         attrs: {
             root: {
                 tabindex: 2,
                 ty: 'object',
+                labelcolor: '#333333',
                 removey: '0%',
                 removex: '100%',
                 title: 'Objecto pasivo'
@@ -28,6 +30,7 @@ export default function Hardware() {
                 },
                 fontSize: 12,
                 fontWeight: 'bold',
+                fill: '#333333',
             }
         },
         actions: [],

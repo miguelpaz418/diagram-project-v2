@@ -16,7 +16,7 @@ import Paper from "@material-ui/core/Paper";
 import withStyles from "@material-ui/core/styles/withStyles";
 import Typography from "@material-ui/core/Typography";
 //Redux
-import { getDiagramData, getAttributes } from "../redux/actions/dataActions";
+import { getDiagramData, getAttributes, getProjectData } from "../redux/actions/dataActions";
 import { connect } from "react-redux";
 
 const styles = theme => ({
@@ -43,6 +43,8 @@ class objectDiagram extends Component {
       this.props.getDiagramData(this.props.match.params.diagramId);
     this._isMounted &&
       this.props.getAttributes();
+    this._isMounted &&
+      this.props.getProjectData(this.props.match.params.projectId);
   }
   componentWillUnmount() {
     this._isMounted = false;
@@ -79,7 +81,7 @@ class objectDiagram extends Component {
         break;
       case "3":
         tipo = "Interacciones/Intra-acciones";
-        typeOfDiagram = <ObjectDiagram
+        typeOfDiagram = <Graph
         projectId={projectId}
         diagramId={diagramId}
         diagram={copyDiagram}
@@ -158,7 +160,8 @@ objectDiagram.propTypes = {
 
 const mapActionsToProps = {
   getDiagramData,
-  getAttributes
+  getAttributes,
+  getProjectData
 };
 
 const mapStateToProps = state => ({

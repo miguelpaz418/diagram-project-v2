@@ -3,6 +3,7 @@ import Passive from './passive/figure';
 import Multimedia from './multimedia/figure';
 import Action from './action/figure';
 import Attribute from './attribute/figure';
+import Interaction from "./interaction/figure";
 
 function returnFigure (graph,type,zoomOut,zoomIn) {
     var figure = null;
@@ -22,6 +23,9 @@ function returnFigure (graph,type,zoomOut,zoomIn) {
         case "attribute":
             figure = Attribute()
         break;
+        case "interaction":
+            figure = Interaction()
+        break;
         case "out":
             zoomOut()
         break;
@@ -40,8 +44,8 @@ function returnFigure (graph,type,zoomOut,zoomIn) {
 function constraintsObjects (fuente,destino) {
     let res = false
     let message = ""
-    const tyFuente = fuente.attributes.attrs.root.ty
-    const tyDestino = destino.attributes.attrs.root.ty
+    const tyFuente = fuente.attributes.class
+    const tyDestino = destino.attributes.class
     const parent = destino.getParentCell()
     const title = destino.attributes.attrs.root.title
     const actions = fuente.attributes.actions
@@ -84,7 +88,7 @@ function undefinedToEmpty (string)  {
 
 function filterValueOfArray (destino, fuente)  {
 
-    if(destino.attributes.attrs.root.ty === "action"){
+    if(destino.attributes.class === "action"){
         let actions = fuente.attributes.actions
         let action = destino.attributes.attrs.root.title
         let newActions = actions.filter(function(element){ 
@@ -92,7 +96,7 @@ function filterValueOfArray (destino, fuente)  {
         });
     
         fuente.prop('actions', newActions);
-    }else if(destino.attributes.attrs.root.ty === "attribute"){
+    }else if(destino.attributes.class === "attribute"){
         let attributes = fuente.attributes.attributes
         let attribute = destino.attributes.attrs.root.title
         let newAttributes = attributes.filter(function(element){ 
@@ -105,11 +109,11 @@ function filterValueOfArray (destino, fuente)  {
 
 function addValueToArray (destino, fuente, title)  {
 
-    if(destino.attributes.attrs.root.ty === "action"){
+    if(destino.attributes.class === "action"){
         let actions = fuente.attributes.actions
         actions.push(title)
         fuente.prop('actions', actions);
-    }else if(destino.attributes.attrs.root.ty === "attribute"){
+    }else if(destino.attributes.class === "attribute"){
         let attributes = fuente.attributes.attributes
         attributes.push(title)
         fuente.prop('attributes', attributes);
@@ -117,11 +121,37 @@ function addValueToArray (destino, fuente, title)  {
 
 };
 
+function changeValueToArray (parent, previousTitle, title, typeArray)  {
+
+    let array = []
+    switch (typeArray) {
+        case "actions":
+            array = parent.attributes.actions
+        break;
+        case "attributes":
+            array = parent.attributes.attributes
+        break;
+        default:
+            console.log("default")
+            return
+    }
+
+    if(!previousTitle.includes("Seleccione")){
+
+        array = array.filter(function(element){ 
+            return element !== previousTitle; 
+        });
+         
+    }
+    array.push(title)
+    parent.prop(typeArray, array);
+};
+
 function getObjectsNames (cells, nameObject)  {
     let names = []
     if(cells.length > 0){
         cells.forEach(element => {
-            let type = undefinedToEmpty(element.attr(['root', 'ty']))
+            let type = undefinedToEmpty(element.attributes.class)
             if(type === "object" ){
                 let name = undefinedToEmpty(element.attr(['label', 'text']))
                 if(name !== nameObject && name !== ""){
@@ -138,7 +168,7 @@ function allObjectsHaveNames (cells) {
     let res = true
     if(cells.length > 0){
         cells.forEach(element => {
-            let type = undefinedToEmpty(element.attr(['root', 'ty']))
+            let type = undefinedToEmpty(element.attributes.class)
             if(type === "object" ){
                 var name = undefinedToEmpty(element.attr(['label', 'text']))
                 if(name === ""){
@@ -150,14 +180,12 @@ function allObjectsHaveNames (cells) {
     return res
 }
 
-
-
-
 export { returnFigure, 
     constraintsObjects, 
     undefinedToEmpty, 
     filterValueOfArray, 
     addValueToArray, 
     getObjectsNames, 
-    allObjectsHaveNames 
+    allObjectsHaveNames,
+    changeValueToArray
 };

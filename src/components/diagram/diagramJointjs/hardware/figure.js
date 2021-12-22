@@ -6,10 +6,11 @@ export default function Hardware() {
     var rect2 = new joint.shapes.standard.Circle({
         position: { x: 450, y: 250 },
         size: { width: 75, height: 75 },
+        class: 'object',
         attrs: {
             root: {
                 tabindex: 2,
-                ty: 'object',
+                labelcolor: '#333333',
                 removey: '15%',
                 removex: '85%',
                 title: 'Objecto hardware'
@@ -21,6 +22,7 @@ export default function Hardware() {
                 strokeWidth: 2
             },
             label: {
+                fill: '#333333',
                 textWrap: {
                     ellipsis: true,
                     width: '75%',
@@ -28,7 +30,6 @@ export default function Hardware() {
                 },
                 fontSize: 12,
                 fontWeight: 'bold',
-                color: 'blue'
             }
         },
         actions: [],

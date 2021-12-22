@@ -6,7 +6,6 @@ import PropTypes from "prop-types";
 import withStyles from "@material-ui/core/styles/withStyles";
 // Panel
 import Panel from './panel'
-import {getActions} from './config-panel'
 
 import { returnFigure, 
         constraintsObjects, 
@@ -14,7 +13,8 @@ import { returnFigure,
         filterValueOfArray,
         addValueToArray,
         getObjectsNames, 
-        allObjectsHaveNames 
+        allObjectsHaveNames,
+        changeValueToArray
     } from './functionsDiagram'
 
 import ObjectModal from './hardware/component';
@@ -46,6 +46,7 @@ class Graph extends React.Component {
         this.graph = new joint.dia.Graph({},{ cellNamespace: this.namespace })
         this.data = this.props.data
         this.type = this.props.type
+        this.list = []
         this.state = {
             op: false,
             op2: false,
@@ -114,8 +115,6 @@ class Graph extends React.Component {
             })
         });
 
-
-
         if(!this.type){    
             this.paper.setInteractivity(false);
         }else{
@@ -134,23 +133,24 @@ class Graph extends React.Component {
             const fuente = linkView.sourceView.model
             const destino = linkView.targetView.model
             const { res, message} = constraintsObjects(fuente,destino)
-
             let title = destino.attributes.attrs.root.title
+
             if(res){
                 linkView.model.remove()
                 this.handleOpenMessage(message)
             }else{
                 fuente.embed(destino)
                 fuente.embed(linkView.model)
+                if(destino.attributes.class === 'interaction'){
+                    linkView.model.attr({
+                       line: { strokeDasharray: '5 2' }
+                    });
+                }
+                
                 if(!title.includes("Seleccione")){
                     addValueToArray(destino, fuente, title)                    
                 }
-
-
             }
-
-
-            
         }.bind(this));
 
         /** 
@@ -158,79 +158,14 @@ class Graph extends React.Component {
         */
 
         this.paper.on('link:disconnect', function(linkView, evt, targetView, connectedToView, magnetElement) {
-
             const fuente = linkView.sourceView.model
             const destino = targetView.model
             fuente.unembed(destino)
             filterValueOfArray(destino, fuente)
-            
         });
 
 
 
-        /** 
-        Function for showing the related modal to the esterotipo
-        Event when double click
-        */
-
-        this.paper.on('element:pointerdblclick', function(elementView, evt) {
-
-            var element = elementView.model;
-            var nameObject = undefinedToEmpty(element.attr(['label', 'text']))
-            var colorName = undefinedToEmpty(element.attr(['label', 'fill']))
-            var colorObject = undefinedToEmpty(element.attr(['body', 'fill']))
-            var attributeComplete = undefinedToEmpty(element.attr(['root', 'key']))
-            var value = undefinedToEmpty(element.attr(['root', 'attrval']))
-
-            let parent = []
-
-            switch (element.attributes.attrs.root.ty) {
-                case "action":
-
-                    let actions = []
-
-                    parent = element.getParentCell()
-                    if(parent !== null){
-                        actions = parent.attributes.actions
-                    }
-                    this.changeShape(element, "", "", "", "", "", "", actions)
-                    this.handleOpen();
-                  break;
-                case "attribute":
-                    if(nameObject !== undefined){
-                        var attributeName = nameObject.split(":")[0]
-                    }
-
-                    let attributes = []
-
-                    parent = element.getParentCell()
-                    if(parent !== null){
-                        attributes = parent.attributes.attributes
-                        let previousTitle = element.attributes.attrs.root.title
-                        if(!previousTitle.includes("Seleccione")){
-
-                            attributes = attributes.filter(function(ele){ 
-                                return ele !== previousTitle; 
-                            });
-                             
-                        }
-                    }
-                    this.changeShape(element, nameObject, "", "", attributeComplete, value, attributeName, attributes)
-                    this.handleOpenAttribute();
-                  break;
-                default:
-                    let cells = this.graph.getCells()
-                    let names = getObjectsNames(cells, nameObject)
-                    if(names.length > 1){
-                        this.setState({
-                            namesObjects: names
-                        })
-                    }
-                    this.changeShape(element, nameObject, colorObject, colorName, "", "", "", "")
-                    this.handleOpenObject();
-                  break;
-            }
-        }.bind(this));
 
 
 
@@ -303,6 +238,7 @@ class Graph extends React.Component {
     Diagram type 1:  all objects have to have name
     */
 
+
     saveDiagram = () => {
         this.graph.set('graphCustomProperty', true);
         this.graph.set('graphExportTime', Date.now());
@@ -316,6 +252,7 @@ class Graph extends React.Component {
         }
         return {error, jsonData}
     }
+
     /** 
     Function for adding all tools when the mouse pointer is over the different figures (estereotipos)
     */
@@ -352,10 +289,79 @@ class Graph extends React.Component {
                 ]
             }));
         });
+
+                /** 
+        Function for showing the related modal to the esterotipo
+        Event when double click
+        */
+
+        this.paper.on('element:pointerdblclick', function(elementView, evt) {
+
+            var element = elementView.model;
+            var nameObject = undefinedToEmpty(element.attr(['label', 'text']))
+            var colorName = undefinedToEmpty(element.attr(['label', 'fill']))
+            var colorObject = undefinedToEmpty(element.attr(['body', 'fill']))
+            var attributeComplete = undefinedToEmpty(element.attr(['root', 'key']))
+            var value = undefinedToEmpty(element.attr(['root', 'attrval']))
+            let parent = []
+
+            switch (element.attributes.class) {
+                case "action":
+                    let actions = []
+                    parent = element.getParentCell()
+                    if(parent !== null){
+                        actions = parent.attributes.actions
+                    }
+                    this.changeShape(element, "", "", "", "", "", "", actions)
+                    this.handleOpen();
+                  break;
+                case "attribute":
+                    if(nameObject !== undefined){
+                        var attributeName = nameObject.split(":")[0]
+                    }
+                    let attributes = []
+                    parent = element.getParentCell()
+                    if(parent !== null){
+                        attributes = parent.attributes.attributes
+                        let previousTitle = element.attributes.attrs.root.title
+                        if(!previousTitle.includes("Seleccione")){
+                            attributes = attributes.filter(function(ele){ 
+                                return ele !== previousTitle; 
+                            });
+                             
+                        }
+                    }
+                    this.changeShape(element, nameObject, "", "", attributeComplete, value, attributeName, attributes)
+                    this.handleOpenAttribute();
+                  break;
+                default:
+                    let cells = this.graph.getCells()
+                    let names = getObjectsNames(cells, nameObject)
+                    if(names.length > 0){
+                        this.setState({
+                            namesObjects: names
+                        })
+                    }
+                    this.changeShape(element, nameObject, colorObject, colorName, "", "", "", "")
+                    this.handleOpenObject();
+                  break;
+            }
+        }.bind(this));
+
+    }
+
+    componentWillUnmount(){
+        this.graph.clear()
     }
 
     updateDiagram = (diagrama) => {
-        this.graph.fromJSON(diagrama, this.namespace);
+        if(typeof diagrama === 'object' && !Array.isArray(diagrama)){
+            this.graph.fromJSON(diagrama, this.namespace);
+            this.zoomLevel = diagrama.zoomLevel
+        }else{
+            this.graph.clear()
+        }
+
     }
 
     zoomIn = () => {
@@ -413,27 +419,13 @@ class Graph extends React.Component {
 
         var element = this.state.selected
         var svgFile = ChipIconsAction(data)
-        //si ta tenia uno y cambia 
-        //si no tenia y se le adiciona
         let previousTitle = element.attributes.attrs.root.title
         element.attr('image/xlinkHref', 'data:image/svg+xml;utf8,' + encodeURIComponent(svgFile));
         element.attr('root/title', data);
-        //element.prop('action', [data]);
         let parent = element.getParentCell()
 
         if(parent !== null){
-
-            let actions = parent.attributes.actions
-            if(!previousTitle.includes("Seleccione")){
-
-                actions = actions.filter(function(ele){ 
-                    return ele !== previousTitle; 
-                });
-                 
-            }
-            actions.push(data)
-            parent.prop('actions', actions);
-            
+            changeValueToArray (parent, previousTitle, data, "actions")
         }
         
         this.setState({
@@ -471,7 +463,6 @@ class Graph extends React.Component {
 
     handleClickObject = (event) => {
         event.preventDefault();
-
         var text = this.state.nameObject
         var element = this.state.selected
         let errors = {};
@@ -490,6 +481,7 @@ class Graph extends React.Component {
             }else{
                 element.attr({
                     label: { text: this.state.nameObject, fill: this.state.colorName },
+                    root: { labelcolor: this.state.colorName },
                     body: { fill: this.state.colorObject }
                 });
                 this.setState({
@@ -547,19 +539,9 @@ class Graph extends React.Component {
                     title: this.state.attributeName
                 }
             });
-            //element.prop('action', [data]);
             let parent = element.getParentCell()
             if(parent !== null){
-                let attributes = parent.attributes.attributes
-                if(!previousTitle.includes("Seleccione")){
-
-                    attributes = attributes.filter(function(ele){ 
-                        return ele !== previousTitle; 
-                    });
-                    
-                }
-                attributes.push(this.state.attributeName)
-                parent.prop('attributes', attributes);
+                changeValueToArray (parent, previousTitle, this.state.attributeName, "attributes")
             }
 
             this.setState({
@@ -598,55 +580,80 @@ class Graph extends React.Component {
     };
 
     render() {
-        const { classes, type } = this.props;
-        let listOfActions = []
-        if(type){
-            listOfActions = getActions("coordinado")
+        const { classes, typeDiagram, userId, diagramUserId, list } = this.props;
+        if(diagramUserId === userId){
             if(this.paper !== undefined){
                 this.paper.setInteractivity(true);
                 this.interactivity()
             }
         }else{
-            listOfActions = getActions("observer")
             if(this.paper !== undefined){
                 this.paper.setInteractivity(false);
+                this.paper.hideTools()
             }
         }
+        let modalsOfDiagram = "";
+        switch (typeDiagram) {
+            case "1":
+                modalsOfDiagram = <div>
+                    <ActionModal 
+                        open={this.state.op} 
+                        handleOpen={this.handleOpen} 
+                        handleClose={this.handleClose} 
+                        handleClick={this.handleClick}
+                        parentsActions={this.state.parentsActions}
+                    />
+                    <ObjectModal 
+                        open={this.state.op2} 
+                        handleOpen={this.handleOpenObject} 
+                        handleClose={this.handleCloseObject} 
+                        handleClick={this.handleClickObject} 
+                        handleChange={this.handleChange} 
+                        handleChange2={this.handleChange2} 
+                        nameObject={this.state.nameObject} 
+                        colorObject={this.state.colorObject} 
+                        colorName={this.state.colorName}
+                        errors={this.state.errors}
+                    />
+                    <AttributeModal 
+                        open={this.state.op3} 
+                        handleOpen={this.handleOpenAttribute} 
+                        handleClose={this.handleCloseAttribute} 
+                        handleClick={this.handleClickAttribute} 
+                        handleChange={this.handleChangeAttribute} 
+                        handleChange2={this.handleChange2Attribute}  
+                        attributeComplete= {this.state.attributeComplete} 
+                        value={this.state.value}
+                        parentsAttributes={this.state.parentsActions}
+                    />
+                </div>
+            break;
+            case "3":
+                modalsOfDiagram = <div>
+                    <ObjectModal 
+                        open={this.state.op2} 
+                        handleOpen={this.handleOpenObject} 
+                        handleClose={this.handleCloseObject} 
+                        handleClick={this.handleClickObject} 
+                        handleChange={this.handleChange} 
+                        handleChange2={this.handleChange2} 
+                        nameObject={this.state.nameObject} 
+                        colorObject={this.state.colorObject} 
+                        colorName={this.state.colorName}
+                        errors={this.state.errors}
+                    />
+                </div>
+            break;
+            default:
+                modalsOfDiagram = <div></div>
+            break;
+          }
 
         return (
             <div className={classes.root}>
-                <Panel listOfActions={listOfActions} action={this.addFigure}  />
+                <Panel listOfActions={list} action={this.addFigure}  />
                 <div id="playground" ref="placeholder" ></div>
-                <ActionModal 
-                    open={this.state.op} 
-                    handleOpen={this.handleOpen} 
-                    handleClose={this.handleClose} 
-                    handleClick={this.handleClick}
-                    parentsActions={this.state.parentsActions}
-                />
-                <ObjectModal 
-                    open={this.state.op2} 
-                    handleOpen={this.handleOpenObject} 
-                    handleClose={this.handleCloseObject} 
-                    handleClick={this.handleClickObject} 
-                    handleChange={this.handleChange} 
-                    handleChange2={this.handleChange2} 
-                    nameObject={this.state.nameObject} 
-                    colorObject={this.state.colorObject} 
-                    colorName={this.state.colorName}
-                    errors={this.state.errors}
-                />
-                <AttributeModal 
-                    open={this.state.op3} 
-                    handleOpen={this.handleOpenAttribute} 
-                    handleClose={this.handleCloseAttribute} 
-                    handleClick={this.handleClickAttribute} 
-                    handleChange={this.handleChangeAttribute} 
-                    handleChange2={this.handleChange2Attribute}  
-                    attributeComplete= {this.state.attributeComplete} 
-                    value={this.state.value}
-                    parentsAttributes={this.state.parentsActions}
-                />
+                {modalsOfDiagram}
                 <MessageDialog 
                     open={this.state.op4} 
                     handleOpen={this.handleOpenMessage} 

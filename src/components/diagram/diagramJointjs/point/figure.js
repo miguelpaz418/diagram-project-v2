@@ -1,12 +1,13 @@
 import * as joint from 'jointjs';
 
-export default function Hardware() {
+export default function Point() {
 
     var portAttrs = { circle: { r: 5, magnet: true, fill: '#ffffff', stroke: 'gray' }};
 
     var rect2 = new joint.shapes.standard.Path({
         position: { x: 60, y: 20 },
         size: { width: 45, height: 45 },
+        class: 'point',
         attrs: {
             root: {
                 tabindex: 2,
