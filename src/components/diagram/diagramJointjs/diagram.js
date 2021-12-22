@@ -165,7 +165,63 @@ class Graph extends React.Component {
         });
 
 
+                /** 
+        Function for showing the related modal to the esterotipo
+        Event when double click
+        */
 
+        this.paper.on('element:pointerdblclick', function(elementView, evt) {
+
+            var element = elementView.model;
+            var nameObject = undefinedToEmpty(element.attr(['label', 'text']))
+            var colorName = undefinedToEmpty(element.attr(['label', 'fill']))
+            var colorObject = undefinedToEmpty(element.attr(['body', 'fill']))
+            var attributeComplete = undefinedToEmpty(element.attr(['root', 'key']))
+            var value = undefinedToEmpty(element.attr(['root', 'attrval']))
+            let parent = []
+
+            switch (element.attributes.class) {
+                case "action":
+                    let actions = []
+                    parent = element.getParentCell()
+                    if(parent !== null){
+                        actions = parent.attributes.actions
+                    }
+                    this.changeShape(element, "", "", "", "", "", "", actions)
+                    this.handleOpen();
+                  break;
+                case "attribute":
+                    if(nameObject !== undefined){
+                        var attributeName = nameObject.split(":")[0]
+                    }
+                    let attributes = []
+                    parent = element.getParentCell()
+                    if(parent !== null){
+                        attributes = parent.attributes.attributes
+                        let previousTitle = element.attributes.attrs.root.title
+                        if(!previousTitle.includes("Seleccione")){
+                            attributes = attributes.filter(function(ele){ 
+                                return ele !== previousTitle; 
+                            });
+                             
+                        }
+                    }
+                    this.changeShape(element, nameObject, "", "", attributeComplete, value, attributeName, attributes)
+                    this.handleOpenAttribute();
+                  break;
+                default:
+                    let cells = this.graph.getCells()
+                    let names = getObjectsNames(cells, nameObject)
+                    if(names.length > 0){
+                        this.setState({
+                            namesObjects: names
+                        })
+                    }
+                    this.changeShape(element, nameObject, colorObject, colorName, "", "", "", "")
+                    this.handleOpenObject();
+                  break;
+            }
+        }.bind(this));
 
 
 
@@ -289,64 +345,6 @@ class Graph extends React.Component {
                 ]
             }));
         });
-
-                /** 
-        Function for showing the related modal to the esterotipo
-        Event when double click
-        */
-
-        this.paper.on('element:pointerdblclick', function(elementView, evt) {
-
-            var element = elementView.model;
-            var nameObject = undefinedToEmpty(element.attr(['label', 'text']))
-            var colorName = undefinedToEmpty(element.attr(['label', 'fill']))
-            var colorObject = undefinedToEmpty(element.attr(['body', 'fill']))
-            var attributeComplete = undefinedToEmpty(element.attr(['root', 'key']))
-            var value = undefinedToEmpty(element.attr(['root', 'attrval']))
-            let parent = []
-
-            switch (element.attributes.class) {
-                case "action":
-                    let actions = []
-                    parent = element.getParentCell()
-                    if(parent !== null){
-                        actions = parent.attributes.actions
-                    }
-                    this.changeShape(element, "", "", "", "", "", "", actions)
-                    this.handleOpen();
-                  break;
-                case "attribute":
-                    if(nameObject !== undefined){
-                        var attributeName = nameObject.split(":")[0]
-                    }
-                    let attributes = []
-                    parent = element.getParentCell()
-                    if(parent !== null){
-                        attributes = parent.attributes.attributes
-                        let previousTitle = element.attributes.attrs.root.title
-                        if(!previousTitle.includes("Seleccione")){
-                            attributes = attributes.filter(function(ele){ 
-                                return ele !== previousTitle; 
-                            });
-                             
-                        }
-                    }
-                    this.changeShape(element, nameObject, "", "", attributeComplete, value, attributeName, attributes)
-                    this.handleOpenAttribute();
-                  break;
-                default:
-                    let cells = this.graph.getCells()
-                    let names = getObjectsNames(cells, nameObject)
-                    if(names.length > 0){
-                        this.setState({
-                            namesObjects: names
-                        })
-                    }
-                    this.changeShape(element, nameObject, colorObject, colorName, "", "", "", "")
-                    this.handleOpenObject();
-                  break;
-            }
-        }.bind(this));
 
     }
 
@@ -589,7 +587,7 @@ class Graph extends React.Component {
         }else{
             if(this.paper !== undefined){
                 this.paper.setInteractivity(false);
-                this.paper.hideTools()
+                this.paper.removeTools()
             }
         }
         let modalsOfDiagram = "";
