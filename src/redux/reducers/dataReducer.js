@@ -11,7 +11,8 @@ import {
   SUBMIT_COMMENT,
   GET_ATTRIBUTES,
   SET_DIAGRAM_UPDATE,
-  SET_COMMET_UPDATE
+  SET_COMMET_UPDATE,
+  DELETE_OBJECT
 } from "../types";
 
 const initialState = {
@@ -20,6 +21,7 @@ const initialState = {
   project: {},
   diagram: {},
   attributes: [],
+  removed: [],
   loading: false
 };
 
@@ -113,6 +115,11 @@ export default function(state = initialState, action) {
           ...state.diagram,
           comments: [action.payload, ...state.diagram.comments]
         }
+      };
+    case DELETE_OBJECT:
+      return {
+        ...state,
+        removed: [action.payload, ...state.removed]
       };
     default:
       return state;

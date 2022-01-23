@@ -3,7 +3,9 @@ import {
   CLEAR_ERRORS,
   LOADING_UI,
   LOADING_UI_GOOGLE,
-  SEND_MAIL
+  SEND_MAIL,
+  SET_MODAL,
+  CLEAR_MODAL
 } from "../types";
 
 const initialState = {
@@ -11,7 +13,10 @@ const initialState = {
   loadingGoogle: false,
   errors: null,
   send: false,
-  message: null
+  message: null,
+  modal: "",
+  openModal: false,
+  messageModal: ""
 };
 
 export default function(state = initialState, action) {
@@ -45,6 +50,20 @@ export default function(state = initialState, action) {
       return {
         ...state,
         loadingGoogle: true
+      };
+    case SET_MODAL:
+      return {
+        ...state,
+        modal: action.payload.modal,
+        openModal: true,
+        messageModal: action.payload.message
+      };
+    case CLEAR_MODAL:
+      return {
+        ...state,
+        modal: "",
+        openModal: false,
+        messageModal: ""
       };
     default:
       return state;

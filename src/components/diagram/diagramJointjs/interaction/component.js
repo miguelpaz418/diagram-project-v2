@@ -1,5 +1,5 @@
 import React from "react";
-import ChipIconAction from "../chipIconsAction";
+import ChipIconInteraction from "../chipIconsInteraction";
 //Icons
 import { Close } from "mdi-material-ui";
 //MUI
@@ -11,11 +11,7 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import Fab from "@material-ui/core/Fab";
 import Grid from '@material-ui/core/Grid';
 
-import { 
-  changeValueToArray,
-} from '../functionsDiagram'
-
-import ChipIconsAction from './chipIconsAction'
+import ChipIconsInteraction from './chipIconsInteraction'
 
 const styles = theme => ({
   buttonRoot: {
@@ -36,58 +32,63 @@ const styles = theme => ({
  * Container
  * ==================================== */
 
-class ActionComponent extends React.PureComponent {
+class InteractionComponent extends React.PureComponent {
 
 
   handleClick =( event, data) => {
     event.preventDefault();
 
     var element = this.props.object
-    var svgFile = ChipIconsAction(data)
-    let previousTitle = element.attributes.attrs.root.title
+    var svgFile = ChipIconsInteraction(data)
     element.attr('image/xlinkHref', 'data:image/svg+xml;utf8,' + encodeURIComponent(svgFile));
     element.attr('root/title', data);
-    let parent = element.getParentCell()
-
-    if(parent !== null){
-        changeValueToArray (parent, previousTitle, data, "actions")
-    }
     this.props.handleClose()
   };
 
   render() {
     const { classes, parentsActions } = this.props;
-    const actions = [
-      "desplazar",
-      "agarrar",
-      "lanzar",
-      "levantar",
+    const interactions = [
+      "conectar",
       "presionar",
-      "gestualizar",
-      "soltar",
-      "leer",
-      "girar",
       "introducir",
-      "adherir",
-      "arrastrar",
-      "ajustar",
-      "retroalimentar",
+      "empujar",
+      "doblar",
+      "cortar",
+      "parar",
+      "esperar",
+      "encender",
+      "agarrar",
+      "soltar",
+      "sacar",
+      "quitar",
+      "levantar",
+      "girar",
+      "mover",
+      "comenzar",
+      "finalizar",
+      "accionar",
+      "apagar",
+      "bajar",
+      "subir",
+      "salir",
+      "abrir",
+      "poner"
     ];
     return (
-        <div >
+        <div>
           <DialogTitle>Selecciona una acción</DialogTitle>
           <DialogContent>
           <Grid container spacing={0}>
-            {actions.map(action => {
-              if(parentsActions.includes(action)){
+            {interactions.map(interaction => {
+              if(parentsActions.includes(interaction)){
                 return (
-                  <Grid key={action} item xs={6} sm={4}>
+                  <Grid key={interaction} item xs={6} sm={4}>
                     <Chip
-                      key={action}
-                      id={action}
-                      avatar={<ChipIconAction pathIcon={action} />}
-                      label={action}
-                      onClick={((e) => this.handleClick(e, action))}
+                      key={interaction}
+                      id={interaction}
+                      avatar={<ChipIconInteraction pathIcon={interaction} />}
+                      label={interaction}
+                      onClick={((e) => this.handleClick(e, interaction))}
                       className={classes.chip}
                       disabled
                     />
@@ -95,13 +96,13 @@ class ActionComponent extends React.PureComponent {
                 );
               }else{
                 return (
-                  <Grid key={action} item xs={6} sm={4}>
+                  <Grid key={interaction} item xs={6} sm={4}>
                     <Chip
-                      key={action}
-                      id={action}
-                      avatar={<ChipIconAction pathIcon={action} />}
-                      label={action}
-                      onClick={((e) => this.handleClick(e, action))}
+                      key={interaction}
+                      id={interaction}
+                      avatar={<ChipIconInteraction pathIcon={interaction} />}
+                      label={interaction}
+                      onClick={((e) => this.handleClick(e, interaction))}
                       className={classes.chip}
                     />
                   </Grid>
@@ -121,4 +122,4 @@ class ActionComponent extends React.PureComponent {
   }
 }
 
-export default withStyles(styles)(ActionComponent);
+export default withStyles(styles)(InteractionComponent);

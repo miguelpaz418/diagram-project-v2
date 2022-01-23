@@ -3,16 +3,18 @@ import React from "react";
 import { Close, Check } from "mdi-material-ui";
 //MUI
 import withStyles from "@material-ui/core/styles/withStyles";
-import Dialog from "@material-ui/core/Dialog";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
 import TextField from "@material-ui/core/TextField";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import Fab from "@material-ui/core/Fab";
-import {InputLabel} from '@material-ui/core';
+import {InputLabel, Select, MenuItem} from '@material-ui/core';
 
 import { ColorPicker } from 'material-ui-color';
 
+import { 
+  undefinedToEmpty,
+} from '../functionsDiagram'
 
 
 
@@ -37,12 +39,31 @@ const styles = theme => ({
  * ==================================== */
 
 class ObjectComponent extends React.PureComponent {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      nameObject: "",
+      color: "",
+      errors: {},
+      objectDetail: '',
+      colorObject: "",
+      colorName: "",
+    };
   
-  state = {
-    nameObject: "",
-    color: "",
-    errors: {}
-  };
+  }
+
+  componentDidMount() {
+
+    if( this.props.object.hasOwnProperty('attributes')){
+      this.setState({
+        colorName: undefinedToEmpty(this.props.object.attributes.attrs.label.fill), 
+        colorObject: undefinedToEmpty(this.props.object.attributes.attrs.body.fill),
+        nameObject: undefinedToEmpty(this.props.object.attributes.attrs.label.text),
+      })
+    }
+
+  }
 
   handleChange = event => {
     this.setState({
@@ -50,43 +71,68 @@ class ObjectComponent extends React.PureComponent {
     });
   };
 
-  handleChange2 = event => {
+
+  handleChange2 = (event,name) => {
     this.setState({
-      color: event.css.backgroundColor
+        [name]: event.css.backgroundColor
     });
   };
 
   validateData = data => {
     let errors = {};
-    if (data.nameObject === "") errors.nameObject = "Must not be empty";
+    if (data.nameObject === "") errors.nameObject = "el campo no debe estar vacio";
+    if (this.props.parentsActions.includes(data.nameObject.toLowerCase())) errors.nameObject = "el nombre ya esta usado";
     return {
       errors,
       valid: Object.keys(errors).length === 0 ? true : false
     };
   };
 
-  handleSubmit = event => {
+  handleClickObject = (event) => {
     event.preventDefault();
-    let data = { nameObject: this.state.nameObject };
-    const { valid, errors } = this.validateData(data);
 
-    if (!valid) {
-      this.setState({
-        errors: errors
-      });
-    } else {
-      this.props.handleClick(event, this.state.nameObject, this.state.color )
-      this.setState({
-        nameObject: "",
-        errors: {}
-      });
+    if(this.props.type === "1"){
+      //var text = this.state.nameObject
+      let data = { nameObject: this.state.nameObject };
+      const { valid, errors } = this.validateData(data);
+      if (!valid) {
+        this.setState({
+          errors: errors
+        });
+      } else {
+        this.props.object.attr({
+          label: { text: this.state.nameObject, fill: this.state.colorName },
+          root: { labelcolor: this.state.colorName },
+          body: { fill: this.state.colorObject }
+        });
+        this.handleCloseObject()
+      }
+    }else{
+        this.props.object.attr({
+          label: { text: this.state.objectDetail.name, fill: this.state.objectDetail.colorName },
+          root: { labelcolor: this.state.objectDetail.colorName, rid: this.state.objectDetail.id },
+          body: { fill: this.state.objectDetail.color }
+        });
+        //this.props.object.prop('id', this.state.objectDetail.id);
+        this.handleCloseObject()
     }
+
   };
 
+
+
+  handleCloseObject = () => {
+
+    this.props.handleClose()
+    this.setState({
+      errors: {},
+      objectDetail: ''
+    });
+  };
   
 
   render() {
-    const { classes } = this.props;
+    const { classes, type, object } = this.props;
 
     const palette = {
       default: '#333333',
@@ -94,48 +140,86 @@ class ObjectComponent extends React.PureComponent {
       white: 'white',
     };
 
+    let title = ""
+    let objectInputs = <div></div>
+    if(type === "1"){
+      title = "Editar nombre del objeto"
+      objectInputs =
+      <div>
+        <TextField
+          name="nameObject"
+          type="text"
+          label="Nombre"
+          placeholder="Nombre del objeto"
+          className={classes.textField}
+          onChange={this.handleChange}
+          value={this.state.nameObject}
+          fullWidth
+          error={this.state.errors.nameObject ? true : false}
+          helperText={this.state.errors.nameObject}
+        />
+        <div>
+          <InputLabel shrink={true} >Color de fondo</InputLabel >
+          <ColorPicker
+            onChange={(e) => this.handleChange2(e,"colorObject")} 
+            value={this.state.colorObject}
+          />
+          <InputLabel shrink={true} >Color de texto</InputLabel>
+          <ColorPicker
+            onChange={(e) => this.handleChange2(e,"colorName")} 
+            value={this.state.colorName}
+            defaultValue="red"
+            palette={palette}
+          />
+        </div>
+      </div>
+    }else{
+      title = "Elegir objeto"
+      const { listObjects, parentsActions } = this.props;
+      //.filter(obj => !names.includes(obj.name))
+      objectInputs =
+      <div>
+        <InputLabel id="demo-simple-select-outlined-label">Objecto</InputLabel>
+        <Select
+          label="Objecto"
+          value={this.state.objectDetail}
+          name="objectDetail"
+          onChange={this.handleChange}
+          fullWidth
+        >
+          {listObjects && object.hasOwnProperty('attributes') && 
+          listObjects
+          .filter(obj => obj.shape === object.attributes.attrs.root.title)
+          .filter(obj => !parentsActions.includes(obj.name))
+          .map((obj) => {
+            return (
+              <MenuItem key={obj.id} value={obj}>
+                {obj.name}
+              </MenuItem>
+            );
+          })}
+        </Select>
+      </div>
+    }
+
+
     return (
-        <Dialog open={this.props.open} maxWidth="xs" onClose={this.props.handleClose}>
-          <DialogTitle>Editar nombre del objeto</DialogTitle>
+        <div>
+          <DialogTitle>{title}</DialogTitle>
           <DialogContent>
             <form onSubmit={this.handleSubmit}>
-              <TextField
-                name="nameObject"
-                type="text"
-                label="Nombre"
-                placeholder="Nombre del objeto"
-                className={classes.textField}
-                onChange={this.props.handleChange}
-                value={this.props.nameObject}
-                fullWidth
-                error={this.props.errors.nameObject ? true : false}
-                helperText={this.props.errors.nameObject}
-              />
-              <div>
-                <InputLabel shrink={true} >Color de fondo</InputLabel >
-                <ColorPicker
-                  onChange={(e) => this.props.handleChange2(e,"colorObject")} 
-                  value={this.props.colorObject}
-                />
-                <InputLabel shrink={true} >Color de texto</InputLabel>
-                <ColorPicker
-                      onChange={(e) => this.props.handleChange2(e,"colorName")} 
-                      value={this.props.colorName}
-                      defaultValue="red"
-                      palette={palette}
-                    />
-              </div>
+              {objectInputs}
             </form>
           </DialogContent>
           <DialogActions>
-            <Fab onClick={this.props.handleClose} color="secondary" size="small">
+            <Fab onClick={this.handleCloseObject} color="secondary" size="small">
                 <Close />
             </Fab>
-            <Fab onClick={this.props.handleClick} color="primary" size="small">
+            <Fab onClick={this.handleClickObject} color="primary" size="small">
                 <Check />
             </Fab>
           </DialogActions>
-        </Dialog>
+        </div>
     );
   }
 }
