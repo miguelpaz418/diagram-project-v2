@@ -4,8 +4,10 @@ import Multimedia from './multimedia/figure';
 import Action from './action/figure';
 import Attribute from './attribute/figure';
 import Interaction from "./interaction/figure";
+import Interrelation from "./interrelation/figure"
+import Reaction from "./reaction/figure"
 
-function returnFigure (graph,type,zoomOut,zoomIn) {
+function returnFigure (graph,type,zoomOut,zoomIn,continuousLine,dottedLine) {
     var figure = null;
     switch (type) {
         case "hardware":
@@ -26,11 +28,23 @@ function returnFigure (graph,type,zoomOut,zoomIn) {
         case "interaction":
             figure = Interaction()
         break;
+        case "interrelation":
+            figure = Interrelation()
+        break;
+        case "reaction":
+            figure = Reaction()
+        break;
         case "out":
             zoomOut()
         break;
         case "in":
             zoomIn()
+        break;
+        case "dot":
+            dottedLine()
+        break;
+        case "con":
+            continuousLine()
         break;
         default:
             console.log("default")
@@ -41,15 +55,23 @@ function returnFigure (graph,type,zoomOut,zoomIn) {
     }
 }
 
-function constraintsObjects (fuente,destino) {
+function constraintsObjects (fuente,destino,graph,typeDiagram) {
     let res = false
     let message = ""
     const tyFuente = fuente.attributes.class
     const tyDestino = destino.attributes.class
-    const parent = destino.getParentCell()
-    const title = destino.attributes.attrs.root.title
-    const actions = fuente.attributes.actions
-    const attributes = fuente.attributes.attributes
+    const parentDestino = destino.getParentCell()
+    const parentFuente = fuente.getParentCell()
+    
+
+    const outNeigborsFuente = graph.getNeighbors(fuente, { outbound: true })
+    const outNeigborsDestino = graph.getNeighbors(destino, { outbound: true })
+    const inNeigborsDestino = graph.getNeighbors(destino, { inbound: true })
+    const allNeigborsFuente = graph.getNeighbors(fuente)
+    const allNeigborsDestino = graph.getNeighbors(destino)
+
+    const titleDestino = destino.attributes.attrs.root.title
+    const titleFuente = fuente.attributes.attrs.root.title
     const embeds = fuente.attributes.embeds
 
     if(tyFuente === 'object' && tyDestino === 'object'){
@@ -61,17 +83,66 @@ function constraintsObjects (fuente,destino) {
     }else if(tyFuente === 'action' && tyDestino !== 'object'){
         res = true
         message = "En este diagrama una accion no se puede relacionar con otras acciones o atributos"
-    }else if( parent !== null && parent.id !== fuente.id ){
+    }else if( parentDestino !== null  ){
         res = true
         message = "El estereotipo no se puede relacionar porque ya tiene un padre"
-    }else if( actions.includes(title) && !embeds.includes(destino.id) ){
+    }else if( outNeigborsFuente.length >= 2 && typeDiagram === "3"){
         res = true
-        message = "El objeto ya tiene una accion con ese valor"
-    }else if( attributes.includes(title) && !embeds.includes(destino.id) ){
+        message = "El estereotipo no se puede relacionar porque ya tiene una conexion saliente"
+    }else if(tyFuente === 'interrelation' && tyDestino === 'interrelation'){
         res = true
-        message = "El objeto ya tiene un atributo con ese valor"
+        message = "En este diagrama una accion no se puede relacionar con otras acciones"
+    }else if(tyFuente === 'interrelation' && tyDestino === 'object' && parentFuente !== null){
+        let name = parentFuente.attributes.attrs.label.text
+        if(name === destino.attributes.attrs.label.text && destino.attributes.attrs.label.text !== undefined){
+            res = true
+            message = "En este diagrama dos objectos iguales no pueden estar relacionados"
+        }
+    }else if(tyFuente === 'object' && tyDestino === 'interrelation') {
+        outNeigborsDestino.forEach(element => {
+            if( (element.attributes.attrs.label.text === fuente.attributes.attrs.label.text ) && element.attributes.attrs.label.text !== undefined  && element.attributes.class === 'object'){
+                res = true
+                message = "En este diagrama una accion no se puede relacionar con otras acciones"
+                return {res,message}
+            }
+            
+        });
+    }else if( outNeigborsFuente.length >= 3 && typeDiagram === "2" && tyFuente === 'interrelation'){
+        res = true
+        message = "El estereotipo alcanzo el limite de conexiones"
+    }else if( inNeigborsDestino.length >= 2 && typeDiagram === "2" && tyDestino === 'reaction'){
+        res = true
+        message = "La reaccion alcanzo el limite de conexiones"
+    }else if( inNeigborsDestino.length >= 2 && typeDiagram === "3" ){
+        res = true
+        message = "El estereotipo no se puede relacionar porque ya tiene una conexion entrante"
+    }else if( titleFuente === titleDestino && !titleDestino.includes("Seleccione")){
+        res = true
+        message = "El diagrama no puede tener dos acciones consecutivas con el mismo valor"
+    }else if( (tyFuente === 'object' && allNeigborsFuente.length >= 2 && typeDiagram === "3" ) 
+    || (tyDestino === 'object' && allNeigborsDestino.length >= 2 && typeDiagram === "3")){
+        res = true
+        message = "El diagram debe comenzar y finalizar con un objecto"
+    }else if( (tyFuente === 'object' && allNeigborsFuente.length >= 2 && typeDiagram === "2" ) 
+    || (tyDestino === 'object' && allNeigborsDestino.length >= 2 && typeDiagram === "2")){
+        res = true
+        message = "El objeto como maximo debe tener una conexion"
+    }else if(tyFuente === 'object' && tyDestino === 'reaction'){
+        res = true
+        message = "El objecto no se puede relacionar directamente con una reaccion"
+    }else if(tyDestino === 'action'){
+        const actions = fuente.attributes.actions
+        if( actions.includes(titleDestino) && !embeds.includes(destino.id) ){
+            res = true
+            message = "El objeto ya tiene una accion con ese valor"
+        }
+    }else if(tyDestino === 'attribute'){
+        const attributes = fuente.attributes.attributes
+        if( attributes.includes(titleDestino) && !embeds.includes(destino.id) ){
+            res = true
+            message = "El objeto ya tiene un atributo con ese valor"
+        }
     }
-
 
     return {res,message}
 };
@@ -84,6 +155,22 @@ function undefinedToEmpty (string)  {
         res = string
     }
     return res
+};
+
+function unembedElements (parent,graph,destino)  {
+    let succesors = graph.getSuccessors(destino)
+    parent.unembed(destino)
+    succesors.forEach(element => {
+        parent.unembed(element)
+    });
+};
+
+function embedElements (parent,graph,destino)  {
+    let succesors = graph.getSuccessors(destino)
+    parent.embed(destino)
+    succesors.forEach(element => {
+        parent.embed(element)
+    });
 };
 
 function filterValueOfArray (destino, fuente)  {
@@ -187,5 +274,7 @@ export { returnFigure,
     addValueToArray, 
     getObjectsNames, 
     allObjectsHaveNames,
-    changeValueToArray
+    changeValueToArray,
+    unembedElements,
+    embedElements
 };

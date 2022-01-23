@@ -9,7 +9,7 @@ import Fab from "@material-ui/core/Fab";
 //Icons
 import SaveIcon from "@material-ui/icons/Save";
 //Redux
-import { saveDiagram } from "../../../redux/actions/dataActions";
+import { saveDiagram, searchObject, closeModal, toOpenModal } from "../../../redux/actions/dataActions";
 import { connect } from "react-redux";
 
 import { returnAction } from './config-panel'
@@ -84,18 +84,27 @@ class ObjectDiagram extends Component {
     super(props);
     this.state = {
       diagram: this.props.diagram,
-      list: []
+      list: [],
+      objects: []
     };
     this.child = React.createRef();
   }
 
   handleSubmit = e => {
     e.preventDefault();
-    const {error, jsonData} = this.child.current.saveDiagram()
+    const {error, jsonData, idsRemoved, idsModificated} = this.child.current.saveDiagram()
+    const {
+      data: {
+        removed
+      }
+    } = this.props;
     if(error){
       const updateDiagram = JSON.stringify(jsonData);
+      let idsRemoved2 = idsRemoved.concat(removed);
       const diagram = {
-        diagram: updateDiagram
+        diagram: updateDiagram,
+        idsRemoved : idsRemoved2, 
+        idsModificated
       };
       const projectId = this.props.projectId;
       const diagramId = this.props.diagramId;
@@ -105,11 +114,30 @@ class ObjectDiagram extends Component {
   };
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    let prevDiagrama = JSON.parse(prevProps.data.diagram.diagram)
-    let diagrama = JSON.parse(this.props.data.diagram.diagram)
+    let prevDiagrama = prevProps.data.diagram.diagram
+    let diagrama = this.props.data.diagram.diagram
     if (prevDiagrama !== diagrama ) {
-      this.child.current.updateDiagram(diagrama)
+      this.child.current.updateDiagram(JSON.parse(diagrama))
     }
+  }
+
+  componentDidMount(){
+    const {
+      data: {
+        diagram,
+        project: { diagrams }
+      }
+    } = this.props;
+
+    let objects = []
+
+    if(diagrams !== undefined){
+      objects = this.getListObjects(diagrams, diagram.diagramId)
+    }
+
+    //let objects = this.getListObjects(diagrams, diagram.diagramId)
+
+    this.setState({objects: objects})
   }
 
 
@@ -139,14 +167,14 @@ class ObjectDiagram extends Component {
 
 
       }else if(type === "2"){
-        actions2 = []
+        actions2 = ["interrelation", 'reaction']
         if(diagrams !== undefined){
           objects = this.panel(diagrams)
         }
         objects = objects.concat(actions2)
 
       }else if(type === "3"){
-        actions2 = ["interaction"]
+        actions2 = ["interaction","dotted","continuous"]
         if(diagrams !== undefined){
           objects = this.panel(diagrams)
         }
@@ -180,6 +208,19 @@ class ObjectDiagram extends Component {
     return objects
   };
 
+  getListObjects = (diagrams, id) => {
+    let objects = []
+    diagrams.forEach(diagram => {
+      if(diagram.type === "1" && diagram.diagramId !== id){
+        diagram.objects.forEach(obj => {
+          objects.push(obj)
+        });
+      }
+      
+    });
+    return objects
+  };
+
 
   render() {
     const {
@@ -192,6 +233,13 @@ class ObjectDiagram extends Component {
       data: {
         diagram
       },
+      ui: {
+        modal,
+        openModal,
+        messageModal
+      },
+      closeModal,
+      toOpenModal,
       diagramUserId,
       type,
     } = this.props;
@@ -200,13 +248,33 @@ class ObjectDiagram extends Component {
     const reduxDiagram = JSON.parse(diagram.diagram);
     const typeUser = diagramUserId === userId
     let list = this.getPanel()
+
+    /**
+     *     
+    let objects = []
+    if(diagrams !== undefined){
+      objects = this.getListObjects(diagrams, diagram.diagramId)
+    }
+    */
     return (
       <>
         <div className={classes.diagram}>
           <CssBaseline />
           <div className={classes.diagramContainer}>
             {authenticated && !loading && 
-              <Diagram ref={this.child} type={typeUser} diagramUserId={diagramUserId} userId={userId} list={list} objects={this.state.objects} typeDiagram={type} data={reduxDiagram} />
+              <Diagram ref={this.child} 
+                searchObject={this.props.searchObject} 
+                type={typeUser} 
+                list={list} 
+                objects={this.state.objects} 
+                typeDiagram={type} 
+                data={reduxDiagram}
+                open={openModal} 
+                handleClose={closeModal}
+                message={messageModal}
+                modal={modal}
+                handleOpen={toOpenModal}
+              />
             }
             {authenticated && diagramUserId === userId ? (
               <Fab
@@ -235,10 +303,11 @@ ObjectDiagram.propTypes = {
 
 const mapStateToProps = state => ({
   user: state.user,
-  data: state.data
+  data: state.data,
+  ui: state.ui
 });
 
 export default connect(
   mapStateToProps,
-  { saveDiagram }
+  { saveDiagram, searchObject, closeModal, toOpenModal }
 )(withStyles(styles)(ObjectDiagram));

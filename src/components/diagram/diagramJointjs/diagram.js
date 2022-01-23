@@ -14,14 +14,16 @@ import { returnFigure,
         addValueToArray,
         getObjectsNames, 
         allObjectsHaveNames,
-        changeValueToArray
+        unembedElements,
+        embedElements
     } from './functionsDiagram'
 
-import ObjectModal from './hardware/component';
 import MessageDialog from './messageDialog';
-import ActionModal from './action/component';
-import AttributeModal from './attribute/component';
-import ChipIconsAction from './action/chipIconsAction'
+
+
+import {
+    Prompt
+} from "react-router-dom";
 
 
 // Css files
@@ -44,26 +46,13 @@ class Graph extends React.Component {
         super(props);
         this.namespace = joint.shapes; 
         this.graph = new joint.dia.Graph({},{ cellNamespace: this.namespace })
-        this.data = this.props.data
         this.type = this.props.type
-        this.list = []
         this.state = {
-            op: false,
-            op2: false,
-            op3: false,
-            op4: false,
-            selected: null,
-            nameObject: "",
-            attributeName: "",
-            attributeComplete: "",
-            value: "",
-            attributeType: "text",
-            colorObject: "",
-            colorName: "",
+            op5: false,
+            selected: {},
             parentsActions: [],
-            namesObjects: [],
-            message: "",
-            errors: {}
+            removed: [],
+            handleClick: null
         };
 
         var CustomLink = joint.shapes.standard.Link.define('standard.Link', {
@@ -76,10 +65,9 @@ class Graph extends React.Component {
 
     componentDidMount() {
 
-        if(typeof this.data === 'object' && !Array.isArray(this.data)){
-            this.graph.fromJSON(this.data, this.namespace);
-            this.zoomLevel = this.data.zoomLevel
-
+        if(typeof this.props.data === 'object' && !Array.isArray(this.props.data)){
+            this.graph.fromJSON(this.props.data, this.namespace);
+            this.zoomLevel = this.props.data.zoomLevel
         }else{
             this.zoomLevel = 1;
         }
@@ -132,25 +120,30 @@ class Graph extends React.Component {
 
             const fuente = linkView.sourceView.model
             const destino = linkView.targetView.model
-            const { res, message} = constraintsObjects(fuente,destino)
+            const { res, message} = constraintsObjects(fuente,destino,this.graph, this.props.typeDiagram)
             let title = destino.attributes.attrs.root.title
 
             if(res){
                 linkView.model.remove()
-                this.handleOpenMessage(message)
+                this.props.handleOpen(message,"information")
             }else{
-                fuente.embed(destino)
-                fuente.embed(linkView.model)
-                if(destino.attributes.class === 'interaction'){
-                    linkView.model.attr({
-                       line: { strokeDasharray: '5 2' }
-                    });
+                if(fuente.attributes.class === 'object'){
+                    embedElements(fuente, this.graph, destino)
+                    fuente.embed(linkView.model)
+                }else{
+                    let parent = fuente.getParentCell()
+                    if(parent !== null){
+                        embedElements(parent, this.graph, destino)
+                        parent.embed(linkView.model)
+                    }
+
                 }
                 
                 if(!title.includes("Seleccione")){
                     addValueToArray(destino, fuente, title)                    
                 }
             }
+
         }.bind(this));
 
         /** 
@@ -158,14 +151,26 @@ class Graph extends React.Component {
         */
 
         this.paper.on('link:disconnect', function(linkView, evt, targetView, connectedToView, magnetElement) {
-            const fuente = linkView.sourceView.model
-            const destino = targetView.model
-            fuente.unembed(destino)
-            filterValueOfArray(destino, fuente)
+            if(linkView.sourceView !== null){
+                const fuente = linkView.sourceView.model
+                const destino = targetView.model
+                let parent = destino.getParentCell()
+                                
+                if(parent !== null){
+                    unembedElements(parent, fuente.graph, destino)
+                }else{
+                    //para diagrama tipo 1
+                    fuente.unembed(destino)
+                }
+    
+                filterValueOfArray(destino, fuente)
+            }
+            
+
         });
 
 
-                /** 
+        /** 
         Function for showing the related modal to the esterotipo
         Event when double click
         */
@@ -174,53 +179,93 @@ class Graph extends React.Component {
 
             var element = elementView.model;
             var nameObject = undefinedToEmpty(element.attr(['label', 'text']))
-            var colorName = undefinedToEmpty(element.attr(['label', 'fill']))
-            var colorObject = undefinedToEmpty(element.attr(['body', 'fill']))
-            var attributeComplete = undefinedToEmpty(element.attr(['root', 'key']))
-            var value = undefinedToEmpty(element.attr(['root', 'attrval']))
             let parent = []
+            this.changeShape({}, [])
 
-            switch (element.attributes.class) {
-                case "action":
-                    let actions = []
-                    parent = element.getParentCell()
-                    if(parent !== null){
-                        actions = parent.attributes.actions
-                    }
-                    this.changeShape(element, "", "", "", "", "", "", actions)
-                    this.handleOpen();
-                  break;
-                case "attribute":
-                    if(nameObject !== undefined){
-                        var attributeName = nameObject.split(":")[0]
-                    }
-                    let attributes = []
-                    parent = element.getParentCell()
-                    if(parent !== null){
-                        attributes = parent.attributes.attributes
-                        let previousTitle = element.attributes.attrs.root.title
-                        if(!previousTitle.includes("Seleccione")){
-                            attributes = attributes.filter(function(ele){ 
-                                return ele !== previousTitle; 
-                            });
-                             
+            if(this.type){
+                switch (element.attributes.class) {
+                    case "action":
+                        let actions = []
+                        parent = element.getParentCell()
+                        if(parent !== null){
+                            actions = parent.attributes.actions
                         }
-                    }
-                    this.changeShape(element, nameObject, "", "", attributeComplete, value, attributeName, attributes)
-                    this.handleOpenAttribute();
-                  break;
-                default:
-                    let cells = this.graph.getCells()
-                    let names = getObjectsNames(cells, nameObject)
-                    if(names.length > 0){
-                        this.setState({
-                            namesObjects: names
-                        })
-                    }
-                    this.changeShape(element, nameObject, colorObject, colorName, "", "", "", "")
-                    this.handleOpenObject();
-                  break;
+                        this.changeShape(element, actions)
+                        this.props.handleOpen("","action")
+                      break;
+                    case "attribute":
+                        let attributes = []
+                        parent = element.getParentCell()
+                        if(parent !== null){
+                            attributes = parent.attributes.attributes
+                            let previousTitle = element.attributes.attrs.root.title
+                            if(!previousTitle.includes("Seleccione")){
+                                attributes = attributes.filter(function(ele){ 
+                                    return ele !== previousTitle; 
+                                });
+                                 
+                            }
+                        }
+                        this.changeShape(element, attributes)
+                        this.props.handleOpen("","attribute")
+                      break;
+                    case "interaction":
+                        let interactions = []
+    
+                        const allNeigbors = this.graph.getNeighbors(element)
+    
+                        allNeigbors.forEach(element => {
+                            if(element.attributes.class === "interaction"){
+                                interactions.push(element.attributes.attrs.root.title)
+                            }
+                        });
+    
+                        this.changeShape(element, interactions)
+                        this.props.handleOpen("","interaction")
+                    break;
+                    case "interrelation":
+                        let interrelations = []
+                        parent = element.getParentCell()
+                        if(parent !== null){
+                            interrelations = parent.attributes.actions
+                        }
+                        this.changeShape(element, interrelations)
+                        this.props.handleOpen("","interrelation")
+                    break;
+                    case "reaction":
+                        let reactions = []
+                        this.changeShape(element, reactions)
+                        this.props.handleOpen("","reaction")
+                    break;
+                    default:
+                        let cells = this.graph.getCells()
+                        let names = []
+                        
+                        parent = element.getParentCell()
+                        if(parent !== null && this.props.typeDiagram === "2"){
+                            let name = parent.attributes.attrs.label.text
+                            names = [name]
+
+                        }if(parent === null && this.props.typeDiagram === "2"){
+                            const allSuccesorsElement = this.graph.getSuccessors(element)
+                            allSuccesorsElement.forEach(succesor => {
+                                if(succesor.attributes.class === "object"){
+                                    let name = succesor.attributes.attrs.label.text
+                                    names.push(name)
+                                }
+                            });
+                        }else if(this.props.typeDiagram === "1") {
+                            names = getObjectsNames(cells, nameObject)
+                            this.props.objects.forEach(element => {
+                                names.push(element.name)
+                            });
+                        }
+                        this.changeShape(element, names)
+                        this.props.handleOpen("","object")
+                      break;
+                }
             }
+
         }.bind(this));
 
 
@@ -252,20 +297,24 @@ class Graph extends React.Component {
         this.paper.on('link:mouseenter', function(linkView) {
             var verticesTool = new joint.linkTools.Vertices();
             var segmentsTool = new joint.linkTools.Segments();
-            var sourceArrowheadTool = new joint.linkTools.SourceArrowhead();
             var targetArrowheadTool = new joint.linkTools.TargetArrowhead();
             var sourceAnchorTool = new joint.linkTools.SourceAnchor();
             var targetAnchorTool = new joint.linkTools.TargetAnchor();
             var boundaryTool = new joint.linkTools.Boundary();
             var removeButton = new joint.linkTools.Remove({
                 action: function(evt, linkView, toolView) {
-                    linkView.model.remove({ ui: true, tool: toolView.cid });
+
                     if(linkView.targetView !== null){
                         let destino = linkView.targetView.model
                         let fuente = linkView.sourceView.model
-                        fuente.unembed(destino)
+                        let parent = destino.getParentCell()
+
+                        if(parent !== null){
+                            unembedElements(parent, fuente.graph, destino)
+                        }
                         filterValueOfArray(destino, fuente)
                     }
+                    linkView.model.remove({ ui: true, tool: toolView.cid });
                     
                 }
             });
@@ -273,7 +322,7 @@ class Graph extends React.Component {
             var toolsView = new joint.dia.ToolsView({
                 tools: [
                     verticesTool, segmentsTool,
-                    sourceArrowheadTool, targetArrowheadTool,
+                     targetArrowheadTool,
                     sourceAnchorTool, targetAnchorTool,
                     boundaryTool, removeButton
                 ]
@@ -285,7 +334,20 @@ class Graph extends React.Component {
         this.paper.on('link:mouseleave', function(linkView) {
             linkView.removeTools();
         });
+
+        this.paper.on('element:pointerclick', function(view, evt) {
+            //view.model.toFront({ deep: true });
+        });
         
+        this.graph.on('change', function(cell) { 
+            let data1 = JSON.stringify(this.props.data)
+            let data2 = JSON.stringify(this.graph.toJSON())
+            if(this.type && !this.state.op5 && (data1 !== data2) ){
+                this.setState({ op5: true })
+            }else if(this.type && this.state.op5 && (data1 === data2)){
+                this.setState({ op5: false })
+            }
+        }.bind(this))
 
     }
 
@@ -304,9 +366,11 @@ class Graph extends React.Component {
         let jsonData = this.graph.toJSON();
         if(!error){
             let message = "Todos los objetos en el diagrama deben de tener nombre"
-            this.handleOpenMessage(message)
+
+            this.props.handleOpen(message,"information")
         }
-        return {error, jsonData}
+        let idsRemoved = this.state.removed
+        return {error, jsonData, idsRemoved }
     }
 
     /** 
@@ -325,7 +389,10 @@ class Graph extends React.Component {
 
             var coorX = elementView.vel.node.attributes.removex.value
             var coorY = elementView.vel.node.attributes.removey.value
-
+            let typeDiagram = this.props.typeDiagram
+            let searchObject = this.props.searchObject
+            let removeCell = this.removeCell
+            let diagram = this
             elementView.addTools(new joint.dia.ToolsView({
                 tools: [
                     new joint.elementTools.Remove({
@@ -335,16 +402,30 @@ class Graph extends React.Component {
                         offset: offset,
                         action: function(evt, elementView, toolView) {
                             let parent = elementView.model.getParentCell()
-                            elementView.model.remove({ ui: true, tool: toolView.cid });
                             if(parent !== null){
                                 let destino = elementView.model
+                                unembedElements(parent, parent.graph, destino)
                                 filterValueOfArray(destino, parent)
+                                
                             }
+                            if(typeDiagram === "1" && elementView.model.attributes.class === 'object'){
+                                searchObject(elementView.model, toolView, "confirmation")
+                                diagram.setState({selected: elementView.model, handleClick: removeCell})
+                            }else{
+                                
+                                elementView.model.remove({ ui: true, tool: toolView.cid });
+                                let idsRemoved = diagram.state.removed
+
+                                idsRemoved.push(elementView.model.attributes.attrs.root.rid)
+
+                                diagram.setState({selected: null, removed: idsRemoved})
+                            }
+                            
                         }
                     })
                 ]
             }));
-        });
+        }.bind(this));
 
     }
 
@@ -372,6 +453,48 @@ class Graph extends React.Component {
         this.zoomScale()
     }
 
+    dottedLine = () => {
+        var CustomLink = joint.shapes.standard.Link.define('standard.Link', {
+            attrs: {
+                line: {
+                    strokeDasharray: '5 2'
+                }
+            },
+        });
+
+        this.paper.options.defaultLink = new CustomLink({
+        });
+
+        var links = this.graph.getLinks()
+        
+        links.forEach(element => {
+            element.attr({
+                line: { strokeDasharray: '5 2' }
+            });
+        });
+    }
+
+    continuousLine = () => {
+        var CustomLink = joint.shapes.standard.Link.define('standard.Link', {
+            attrs: {
+                line: {
+                    strokeDasharray: ''
+                }
+            },
+        });
+
+        this.paper.options.defaultLink = new CustomLink({
+        });
+
+        var links = this.graph.getLinks()
+
+        links.forEach(element => {
+            element.attr({
+                line: { strokeDasharray: '' }
+            });
+        });
+    }
+
     zoomScale = () => {
         var size = this.paper.getComputedSize();
         this.paper.translate(0,0);
@@ -379,207 +502,29 @@ class Graph extends React.Component {
     }
 
     addFigure = (type) => {
-        returnFigure(this.graph,type, this.zoomOut, this.zoomIn)
+        returnFigure(this.graph,type, this.zoomOut, this.zoomIn, this.continuousLine, this.dottedLine)
     }  
 
-    changeShape = (shape, nameObject, colorObject, colorName, attributeComplete, value, attributeName, actions) => {
-        var attributeType = "text"
-        attributeType = attributeComplete.split("-")[1]
-        
+    removeCell = () => {
+        this.state.selected.remove()
+        this.props.handleClose()
+        let idsRemoved = this.state.removed
+        idsRemoved.push(this.state.selected.id)
+        this.setState({selected: null, removed: idsRemoved})
+    }
+
+    changeShape = (shape, actions) => {
+
         this.setState({
           selected: shape,
-          nameObject: nameObject,
-          colorObject: colorObject,
-          colorName: colorName,
-          attributeComplete: attributeComplete,
-          value: value,
-          attributeName: attributeName,
-          attributeType: attributeType,
           parentsActions: actions
         });
 
     };
 
-    handleOpen = () => {
-        this.setState({
-          op: true
-        });
-    };
-
-    handleClose = () => {
-        this.setState({
-            op: false
-          });
-    };
-
-    handleClick =( event, data) => {
-        event.preventDefault();
-
-        var element = this.state.selected
-        var svgFile = ChipIconsAction(data)
-        let previousTitle = element.attributes.attrs.root.title
-        element.attr('image/xlinkHref', 'data:image/svg+xml;utf8,' + encodeURIComponent(svgFile));
-        element.attr('root/title', data);
-        let parent = element.getParentCell()
-
-        if(parent !== null){
-            changeValueToArray (parent, previousTitle, data, "actions")
-        }
-        
-        this.setState({
-            selected: null,
-            nameObject: "",
-            op: false,
-            parentsActions: []
-        });
-    };
-
-    handleOpenObject = () => {
-        this.setState({
-          op2: true
-        });
-    };
-
-    handleCloseObject = () => {
-        this.setState({
-            op2: false,
-            errors: {}
-          });
-    };
-
-    handleChange = event => {
-        this.setState({
-          [event.target.name]: event.target.value
-        });
-    };
-
-    handleChange2 = (event,name) => {
-        this.setState({
-            [name]: event.css.backgroundColor
-        });
-    };
-
-    handleClickObject = (event) => {
-        event.preventDefault();
-        var text = this.state.nameObject
-        var element = this.state.selected
-        let errors = {};
-        if (text !== null) {
-            if (this.state.namesObjects.includes(text.toLowerCase())){
-                errors.nameObject = "el nombre ya esta usado";
-                this.setState({
-                    errors: errors
-                });
-
-            }else if(text === ""){
-                errors.nameObject = "el campo no debe estar vacio";
-                this.setState({
-                    errors: errors
-                });
-            }else{
-                element.attr({
-                    label: { text: this.state.nameObject, fill: this.state.colorName },
-                    root: { labelcolor: this.state.colorName },
-                    body: { fill: this.state.colorObject }
-                });
-                this.setState({
-                    selected: null,
-                    nameObject: "",
-                    colorObject: "",
-                    colorName: "",
-                    op2: false,
-                    errors: {}
-                });
-            }
-
-        }
-    };
-
-
-    handleOpenAttribute = () => {
-        this.setState({
-          op3: true
-        });
-    };
-
-    handleCloseAttribute = () => {
-        this.setState({
-            op3: false
-          });
-    };
-
-    handleOpenMessage = (message) => {
-        this.setState({
-          op4: true,
-          message: message
-        });
-    };
-
-    handleCloseMessage = () => {
-        this.setState({
-            op4: false,
-            message: ""
-          });
-    };
-
-
-    handleClickAttribute = event => {
-        event.preventDefault();
-        var element = this.state.selected
-        let previousTitle = element.attributes.attrs.root.title
-        var text = this.state.attributeName + ': ' + this.state.value
-        if (text !== null) {
-            element.attr({
-                label: { text: text },
-                root: { 
-                    key: this.state.attributeComplete,
-                    attrval: this.state.value,
-                    title: this.state.attributeName
-                }
-            });
-            let parent = element.getParentCell()
-            if(parent !== null){
-                changeValueToArray (parent, previousTitle, this.state.attributeName, "attributes")
-            }
-
-            this.setState({
-                selected: null,
-                attributeName: "",
-                value: "",
-                attributeType: "",
-                attributeComplete: "",
-                op3: false,
-            });
-        }
-    };
-
-    handleChangeAttribute = event => {
-        let label = event.nativeEvent.target.textContent;
-        let arrayDeCadenas = event.target.value.split("-");
-        this.setState({
-          attributeComplete: event.target.value,
-          attributeName: label,
-          attributeType: arrayDeCadenas[1],
-          value: "",
-        });
-      };
-    
-    handleChange2Attribute = event => {
-        this.setState({
-            [event.target.name]: this.validateChange(event.target.value)
-        });
-    };
-
-    validateChange = (value) => {
-        if(this.state.attributeType === 'number' && !Number(value)){
-            return value.replace(/\D/g, '');
-        }
-        return value
-    };
-
     render() {
-        const { classes, typeDiagram, userId, diagramUserId, list } = this.props;
-        if(diagramUserId === userId){
+        const { classes, typeDiagram, type, list, objects, open, handleClose,message, modal } = this.props;
+        if(type){
             if(this.paper !== undefined){
                 this.paper.setInteractivity(true);
                 this.interactivity()
@@ -590,73 +535,25 @@ class Graph extends React.Component {
                 this.paper.removeTools()
             }
         }
-        let modalsOfDiagram = "";
-        switch (typeDiagram) {
-            case "1":
-                modalsOfDiagram = <div>
-                    <ActionModal 
-                        open={this.state.op} 
-                        handleOpen={this.handleOpen} 
-                        handleClose={this.handleClose} 
-                        handleClick={this.handleClick}
-                        parentsActions={this.state.parentsActions}
-                    />
-                    <ObjectModal 
-                        open={this.state.op2} 
-                        handleOpen={this.handleOpenObject} 
-                        handleClose={this.handleCloseObject} 
-                        handleClick={this.handleClickObject} 
-                        handleChange={this.handleChange} 
-                        handleChange2={this.handleChange2} 
-                        nameObject={this.state.nameObject} 
-                        colorObject={this.state.colorObject} 
-                        colorName={this.state.colorName}
-                        errors={this.state.errors}
-                    />
-                    <AttributeModal 
-                        open={this.state.op3} 
-                        handleOpen={this.handleOpenAttribute} 
-                        handleClose={this.handleCloseAttribute} 
-                        handleClick={this.handleClickAttribute} 
-                        handleChange={this.handleChangeAttribute} 
-                        handleChange2={this.handleChange2Attribute}  
-                        attributeComplete= {this.state.attributeComplete} 
-                        value={this.state.value}
-                        parentsAttributes={this.state.parentsActions}
-                    />
-                </div>
-            break;
-            case "3":
-                modalsOfDiagram = <div>
-                    <ObjectModal 
-                        open={this.state.op2} 
-                        handleOpen={this.handleOpenObject} 
-                        handleClose={this.handleCloseObject} 
-                        handleClick={this.handleClickObject} 
-                        handleChange={this.handleChange} 
-                        handleChange2={this.handleChange2} 
-                        nameObject={this.state.nameObject} 
-                        colorObject={this.state.colorObject} 
-                        colorName={this.state.colorName}
-                        errors={this.state.errors}
-                    />
-                </div>
-            break;
-            default:
-                modalsOfDiagram = <div></div>
-            break;
-          }
 
         return (
             <div className={classes.root}>
+                <Prompt
+                    when={this.state.op5}
+                    message="Hay cambios sin guardar. ¿Estás seguro de que quieres salir de esta página?"
+                />
                 <Panel listOfActions={list} action={this.addFigure}  />
                 <div id="playground" ref="placeholder" ></div>
-                {modalsOfDiagram}
                 <MessageDialog 
-                    open={this.state.op4} 
-                    handleOpen={this.handleOpenMessage} 
-                    handleClose={this.handleCloseMessage}
-                    message={this.state.message}
+                    open={open} 
+                    handleClose={handleClose}
+                    message={message}
+                    type={modal}
+                    parentsActions={this.state.parentsActions}
+                    object={this.state.selected}
+                    typeDiagram={typeDiagram}
+                    listObjects={objects}
+                    handleClick={this.state.handleClick}
                 />
             </div>
         );
