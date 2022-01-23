@@ -3,7 +3,6 @@ import React from "react";
 import { Close, Check } from "mdi-material-ui";
 //MUI
 import withStyles from "@material-ui/core/styles/withStyles";
-import Dialog from "@material-ui/core/Dialog";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
 import TextField from "@material-ui/core/TextField";
@@ -14,6 +13,11 @@ import MenuItem from '@material-ui/core/MenuItem';
 import {InputLabel, FormControl, Select} from '@material-ui/core';
 
 import { connect } from "react-redux";
+
+import { 
+  undefinedToEmpty,
+  changeValueToArray
+} from '../functionsDiagram'
 
 const styles = theme => ({
   ...theme.formTheme,
@@ -36,7 +40,11 @@ class AttributeComponent extends React.PureComponent {
     inputType: "number",
     inputValue: "",
     inputLabel: "",
-    errors: {}
+    errors: {},
+    attributeName: "",
+    value: "",
+    attributeType: "",
+    attributeComplete: "",
   };
 
   handleOpen = () => {
@@ -46,18 +54,43 @@ class AttributeComponent extends React.PureComponent {
   };
 
   handleClose = () => {
+    this.props.handleClose()
     this.setState({
       open: false,
-      errors: {}
+      errors: {},
+      value: "",
+      attributeComplete: "",
     });
   };
 
-  handleChange = event => {
+  componentDidUpdate(prevProps) {
+
+    if( this.props.object.hasOwnProperty('attributes') && prevProps.object !== this.props.object){
+      var nameObject = undefinedToEmpty(this.props.object.attributes.attrs.root.text)
+      var attributeComplete = undefinedToEmpty(this.props.object.attributes.attrs.root.key)
+      var attributeType = "text"
+      
+      if(nameObject !== ""){
+        var attributeName = nameObject.split(":")[0]
+        attributeType = attributeComplete.split("-")[1]
+      }
+      this.setState({
+        attributeName: attributeName,
+        value: undefinedToEmpty(this.props.object.attributes.attrs.root.attrval),
+        attributeType: attributeType,
+        attributeComplete: attributeComplete,
+      })
+    }
+  }
+
+  handleChangeAttribute = event => {
     let label = event.nativeEvent.target.textContent;
+    let arrayDeCadenas = event.target.value.split("-");
     this.setState({
-      [event.target.name]: event.target.value,
-      inputLabel: label,
-      inputValue: "",
+      attributeComplete: event.target.value,
+      attributeName: label,
+      attributeType: arrayDeCadenas[1],
+      value: "",
     });
   };
 
@@ -68,46 +101,40 @@ class AttributeComponent extends React.PureComponent {
   };
 
   validateChange = (value) => {
-
-    if(this.props.inputType === 'number' && !Number(value)){
-      return value.replace(/\D/g, '');
+    if(this.state.attributeType === 'number' && !Number(value)){
+        return value.replace(/\D/g, '');
     }
     return value
   };
 
-  handleSubmit = event => {
+
+  handleClickAttribute = event => {
     event.preventDefault();
-    let data = { attribute: this.state.inputLabel, value: this.state.inputValue };
-
-    const { valid, errors } = this.validateData(data);
-
-    if (!valid) {
-      this.setState({
-        errors: errors
-      });
-    } else {
-      this.props.handleClick(event,data)
-      this.setState({
-        open: false,
-        inputType: "number",
-        inputValue: "",
-        inputLabel: "",
-        errors: {}
-      });
+    var element = this.props.object
+    let previousTitle = element.attributes.attrs.root.title
+    var text = this.state.attributeName + ': ' + this.state.value
+    if (text !== null) {
+        element.attr({
+            label: { text: text },
+            root: { 
+                key: this.state.attributeComplete,
+                attrval: this.state.value,
+                title: this.state.attributeName
+            }
+        });
+        let parent = element.getParentCell()
+        if(parent !== null){
+            changeValueToArray (parent, previousTitle, this.state.attributeName, "attributes")
+        }
+        this.props.handleClose()
+        this.setState({
+            attributeName: "",
+            value: "",
+            attributeType: "",
+            attributeComplete: "",
+        });
     }
-  };
-
-  validateData = data => {
-    let errors = {};
-    if (data.attribute === "") errors.attribute = "Must not be empty";
-    if (data.value === "") errors.value = "Must not be empty";
-    return {
-      errors,
-      valid: Object.keys(errors).length === 0 ? true : false
-    };
-  };
-
-
+  }; 
   
 
   render() {
@@ -115,7 +142,7 @@ class AttributeComponent extends React.PureComponent {
     //get the attributes from data in redux
     const { attributes } = this.props.data;
     return (
-        <Dialog open={this.props.open} maxWidth="xs" onClose={this.props.handleClose}>
+        <div>
           <DialogTitle>Editar atributo</DialogTitle>
           <DialogContent>
             <form onSubmit={this.props.handleClick}>
@@ -123,18 +150,19 @@ class AttributeComponent extends React.PureComponent {
                 <InputLabel id="demo-simple-select-outlined-label">Nombre</InputLabel>
                 <Select
                   label="Nombre"
-                  value={this.props.attributeComplete}
-                  onChange={this.props.handleChange}
+                  value={this.state.attributeComplete}
+                  onChange={this.handleChangeAttribute}
                   fullWidth
                 >
-                  {attributes && attributes.map((option) => {
-                    if(!parentsAttributes.includes(option.name)){
-                      return (
-                        <MenuItem key={option.id} value={option.id+"-"+option.type}>
-                          {option.name}
-                        </MenuItem>
-                      );
-                    }
+                  {attributes && parentsAttributes && 
+                  attributes
+                  .filter(option => !parentsAttributes.includes(option.name))
+                  .map((option) => {
+                    return (
+                      <MenuItem key={option.id} value={option.id+"-"+option.type}>
+                        {option.name}
+                      </MenuItem>
+                    );
                   })}
                 </Select>
               </FormControl>
@@ -144,8 +172,8 @@ class AttributeComponent extends React.PureComponent {
                 label="Valor"
                 placeholder="Valor"
                 className={classes.textField}
-                value={this.props.value}
-                onChange={this.props.handleChange2}
+                value={this.state.value}
+                onChange={this.handleChange2}
                 fullWidth
                 variant="outlined"
                 error={this.state.errors.value ? true : false}
@@ -154,14 +182,14 @@ class AttributeComponent extends React.PureComponent {
             </form>
           </DialogContent>
           <DialogActions>
-            <Fab onClick={this.props.handleClose} color="secondary" size="small">
+            <Fab onClick={this.handleClose} color="secondary" size="small">
               <Close />
             </Fab>
-            <Fab onClick={this.props.handleClick} color="primary" size="small">
+            <Fab onClick={this.handleClickAttribute} color="primary" size="small">
               <Check />
             </Fab>
           </DialogActions>
-        </Dialog>
+        </div>
     );
   }
 }

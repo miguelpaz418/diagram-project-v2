@@ -39,7 +39,8 @@ class CreateDiagram extends Component {
     type: "",
     diagramName: "",
     open: false,
-    errors: {}
+    errors: {},
+    numObjects: 0
   };
   componentWillReceiveProps(nextProps) {
     if (nextProps.ui.errors) {
@@ -55,6 +56,25 @@ class CreateDiagram extends Component {
         errors: {}
       });
     }
+  }
+  componentDidMount(){
+    const {
+      data: {
+        project: { diagrams }
+      },
+    } = this.props;
+    let num = 0
+    if(diagrams !== undefined) {
+      diagrams.forEach(diagram => {
+        if(diagram.type === "1"){
+          diagram.objects.forEach(() => {
+            num++
+          });
+        }
+      });
+    }
+
+    this.setState({numObjects: num})
   }
   handleOpen = () => {
     this.setState({
@@ -85,16 +105,25 @@ class CreateDiagram extends Component {
   };
 
   render() {
-    const { errors } = this.state;
+    const { errors, numObjects } = this.state;
     const {
       classes,
       ui: { loading }
     } = this.props;
+    /**
     const types = [
       { value: "1", label: "Objetos/Acciones" },
       { value: "2", label: "Interrelación/Reacción" },
       { value: "3", label: "Interacciones/Intra-acciones" }
     ];
+    */
+    let types = [{ value: "1", label: "Objetos/Acciones" }]
+    if(numObjects > 0){
+      types.push({ value: "3", label: "Interacciones/Intra-acciones" })
+    }
+    if(numObjects > 1){
+      types.push({ value: "2", label: "Interrelación/Reacción" })
+    }
     return (
       <div>
         <CustomButton
@@ -190,7 +219,8 @@ CreateDiagram.propTypes = {
 };
 
 const mapStateToProps = state => ({
-  ui: state.ui
+  ui: state.ui,
+  data: state.data
 });
 
 const mapActionsToProps = {

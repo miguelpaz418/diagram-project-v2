@@ -4,7 +4,6 @@ import PropTypes from "prop-types";
 import SkeletonComments from "../skeleton/SkeletonComments";
 import SkeletonDiagram from "../skeleton/SkeletonDiagram";
 import SkeletonName from "../skeleton/SkeletonName";
-import ObjectDiagram from "../components/diagram/objectDiagram/index";
 import Comments from "../components/diagram/Comments";
 import CommentForm from "../components/diagram/CommentForm";
 //NEW
@@ -16,7 +15,7 @@ import Paper from "@material-ui/core/Paper";
 import withStyles from "@material-ui/core/styles/withStyles";
 import Typography from "@material-ui/core/Typography";
 //Redux
-import { getDiagramData, getAttributes, getProjectData } from "../redux/actions/dataActions";
+import { getDiagramData, getAttributes, getProjectData, clearDiagram } from "../redux/actions/dataActions";
 import { connect } from "react-redux";
 
 const styles = theme => ({
@@ -47,6 +46,7 @@ class objectDiagram extends Component {
       this.props.getProjectData(this.props.match.params.projectId);
   }
   componentWillUnmount() {
+    this.props.clearDiagram()
     this._isMounted = false;
   }
   render() {
@@ -91,7 +91,7 @@ class objectDiagram extends Component {
         break;
       case "2":
         tipo = "Interrelaciones/reacciones";
-        typeOfDiagram = <ObjectDiagram
+        typeOfDiagram = <Graph
         projectId={projectId}
         diagramId={diagramId}
         diagram={copyDiagram}
@@ -161,7 +161,8 @@ objectDiagram.propTypes = {
 const mapActionsToProps = {
   getDiagramData,
   getAttributes,
-  getProjectData
+  getProjectData,
+  clearDiagram
 };
 
 const mapStateToProps = state => ({

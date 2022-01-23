@@ -1,9 +1,10 @@
 import React from "react";
-import ChipIconAction from "../chipIconsAction";
+import ChipIconInterrelation from "../chipIconsInterrelation";
 //Icons
 import { Close } from "mdi-material-ui";
 //MUI
 import withStyles from "@material-ui/core/styles/withStyles";
+
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
 import Chip from "@material-ui/core/Chip";
@@ -11,11 +12,9 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import Fab from "@material-ui/core/Fab";
 import Grid from '@material-ui/core/Grid';
 
-import { 
-  changeValueToArray,
-} from '../functionsDiagram'
 
-import ChipIconsAction from './chipIconsAction'
+
+import ChipIconsInteraction from './chipIconsInterrelation'
 
 const styles = theme => ({
   buttonRoot: {
@@ -36,58 +35,46 @@ const styles = theme => ({
  * Container
  * ==================================== */
 
-class ActionComponent extends React.PureComponent {
+class InterrelationComponent extends React.PureComponent {
 
 
   handleClick =( event, data) => {
     event.preventDefault();
 
     var element = this.props.object
-    var svgFile = ChipIconsAction(data)
-    let previousTitle = element.attributes.attrs.root.title
+    var svgFile = ChipIconsInteraction(data)
     element.attr('image/xlinkHref', 'data:image/svg+xml;utf8,' + encodeURIComponent(svgFile));
     element.attr('root/title', data);
-    let parent = element.getParentCell()
-
-    if(parent !== null){
-        changeValueToArray (parent, previousTitle, data, "actions")
-    }
     this.props.handleClose()
   };
 
   render() {
     const { classes, parentsActions } = this.props;
-    const actions = [
-      "desplazar",
-      "agarrar",
-      "lanzar",
-      "levantar",
-      "presionar",
-      "gestualizar",
-      "soltar",
-      "leer",
-      "girar",
-      "introducir",
-      "adherir",
-      "arrastrar",
-      "ajustar",
-      "retroalimentar",
+    const interrelations = [
+      "comunicación multidireccional",
+      "comunicación bidireccional",
+      "comunicación digital",
+      "choque",
+      "roce",
+      "toque",
+      "encaje",
+      "dependencia"
     ];
     return (
         <div >
           <DialogTitle>Selecciona una acción</DialogTitle>
           <DialogContent>
           <Grid container spacing={0}>
-            {actions.map(action => {
-              if(parentsActions.includes(action)){
+            {interrelations.map(interrelation => {
+              if(parentsActions.includes(interrelation)){
                 return (
-                  <Grid key={action} item xs={6} sm={4}>
+                  <Grid key={interrelation} item xs={12} sm={6}>
                     <Chip
-                      key={action}
-                      id={action}
-                      avatar={<ChipIconAction pathIcon={action} />}
-                      label={action}
-                      onClick={((e) => this.handleClick(e, action))}
+                      key={interrelation}
+                      id={interrelation}
+                      avatar={<ChipIconInterrelation pathIcon={interrelation} />}
+                      label={interrelation}
+                      onClick={((e) => this.handleClick(e, interrelation))}
                       className={classes.chip}
                       disabled
                     />
@@ -95,13 +82,13 @@ class ActionComponent extends React.PureComponent {
                 );
               }else{
                 return (
-                  <Grid key={action} item xs={6} sm={4}>
+                  <Grid key={interrelation} item xs={12} sm={6}>
                     <Chip
-                      key={action}
-                      id={action}
-                      avatar={<ChipIconAction pathIcon={action} />}
-                      label={action}
-                      onClick={((e) => this.handleClick(e, action))}
+                      key={interrelation}
+                      id={interrelation}
+                      avatar={<ChipIconInterrelation pathIcon={interrelation} />}
+                      label={interrelation}
+                      onClick={((e) => this.handleClick(e, interrelation))}
                       className={classes.chip}
                     />
                   </Grid>
@@ -121,4 +108,4 @@ class ActionComponent extends React.PureComponent {
   }
 }
 
-export default withStyles(styles)(ActionComponent);
+export default withStyles(styles)(InterrelationComponent);

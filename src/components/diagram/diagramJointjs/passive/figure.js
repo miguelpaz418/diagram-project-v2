@@ -14,7 +14,8 @@ export default function Passive() {
                 labelcolor: '#333333',
                 removey: '0%',
                 removex: '100%',
-                title: 'Objecto pasivo'
+                title: 'Objecto pasivo',
+                rid: '0'
             },
             body: {
                 fill: '#64B5F6',
@@ -35,6 +36,7 @@ export default function Passive() {
         },
         actions: [],
         attributes: [],
+        embeds: [],
         ports: {
             groups: {
                 left: { position: 'left', attrs: portAttrs },

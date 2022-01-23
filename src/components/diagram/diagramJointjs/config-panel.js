@@ -6,6 +6,10 @@ import Multimedia from "./multimedia/icon";
 import Action from "./action/icon";
 import Attribute from "./attribute/icon";
 import Interaction from "./interaction/icon";
+import Interrelation from "./interrelation/icon"
+import Reaction from "./reaction/icon"
+import ContinuousLine from "./lines/continuousLine"
+import DottedLine from "./lines/dottedLine"
 
 function returnAction (type) {
     let res = {}
@@ -58,6 +62,20 @@ function returnAction (type) {
                 title: 'Add interaction'
             }
         break;
+        case "interrelation":
+            res =  {
+                icon: Interrelation(),
+                action: 'interrelation',
+                title: 'Add interrelation'
+            }
+        break;
+        case "reaction":
+            res =  {
+                icon: Reaction(),
+                action: 'reaction',
+                title: 'Add reaction'
+            }
+        break;
         case "in":
 
             res = {
@@ -72,6 +90,22 @@ function returnAction (type) {
                 icon: zoomOutIcon(),
                 action: 'out',
                 title: 'Zoom out'
+            }
+        break;
+        case "dotted":
+
+            res = {
+                icon: DottedLine(),
+                action: 'dot',
+                title: 'Dotted line'
+            }
+        break;
+        case "continuous":
+
+            res = {
+                icon: ContinuousLine(),
+                action: 'con',
+                title: 'Continuous line'
             }
         break;
         default:

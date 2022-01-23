@@ -12,7 +12,10 @@ import {
   DELETE_DIAGRAM,
   SET_DIAGRAM,
   SUBMIT_COMMENT,
-  GET_ATTRIBUTES
+  GET_ATTRIBUTES,
+  CLEAR_MODAL,
+  SET_MODAL,
+  DELETE_OBJECT
 } from "../types";
 import axios from "axios";
 
@@ -134,6 +137,14 @@ export const clearErrors = () => dispatch => {
   dispatch({ type: CLEAR_ERRORS });
 };
 
+//Clear errors
+export const clearDiagram = () => dispatch => {
+  dispatch({
+    type: SET_DIAGRAM,
+    payload: []
+  });
+};
+
 //Create one Diagram
 export const createDiagram = (projectId, newDiagram) => dispatch => {
   dispatch({ type: LOADING_UI });
@@ -217,4 +228,43 @@ export const getAttributes = () => dispatch => {
         payload: []
       });
     });
+};
+
+
+//Delete one object
+export const searchObject = (object,toolView, type ) => dispatch => {
+  axios
+    .get(`/object/${object.id}`)
+    .then((response) => {
+      if(response.data){
+        let message = "El objecto está siendo usado en otro diagrama, se eliminaran los demas diagramas ¿Desea continuar?"
+        dispatch({
+          type: SET_MODAL,
+          payload: {message, modal: type}
+        });
+      }else{
+        object.remove({ ui: true, tool: toolView.cid });
+        dispatch({
+          type: DELETE_OBJECT,
+          payload: object.id
+        });
+      }
+    })
+    .catch(err => {
+      console.log(err);
+    });
+
+};
+
+//Delete one object
+export const closeModal = () => dispatch => {
+  dispatch({ type: CLEAR_MODAL });
+};
+
+//Delete one object
+export const toOpenModal = (message,type) => dispatch => {
+  dispatch({
+    type: SET_MODAL,
+    payload: {message, modal: type}
+  });
 };

@@ -14,6 +14,8 @@ export const LOADING_DATA = "LOADING_DATA";
 export const LOADING_USER = "LOADING_USER";
 export const LOADING_UI_GOOGLE = "LOADING_UI_GOOGLE";
 export const SEND_MAIL = "SEND_MAIL";
+export const SET_MODAL = "SET_MODAL";
+export const CLEAR_MODAL = "CLEAR_MODAL";
 //Data reducer types
 export const SET_PROJECTS = "SET_PROJECTS";
 export const SET_PROJECT = "SET_PROJECT";
@@ -27,3 +29,4 @@ export const SUBMIT_COMMENT = "SUBMIT_COMMENT";
 export const GET_ATTRIBUTES = "GET_ATTRIBUTES";
 export const SET_DIAGRAM_UPDATE = "SET_DIAGRAM_UPDATE";
 export const SET_COMMET_UPDATE = "SET_COMMET_UPDATE";
+export const DELETE_OBJECT = "DELETE_OBJECT";

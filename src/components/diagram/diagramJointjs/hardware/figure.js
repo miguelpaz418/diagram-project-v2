@@ -13,7 +13,8 @@ export default function Hardware() {
                 labelcolor: '#333333',
                 removey: '15%',
                 removex: '85%',
-                title: 'Objecto hardware'
+                title: 'Objecto hardware',
+                rid: '0'
             },
             body: {
                 fill: '#F06292',
@@ -34,6 +35,7 @@ export default function Hardware() {
         },
         actions: [],
         attributes: [],
+        embeds: [],
         ports: {
             groups: {
                 left: { position: 'left', attrs: portAttrs },
