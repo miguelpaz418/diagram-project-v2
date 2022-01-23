@@ -17,11 +17,12 @@ export default function Interaction() {
             },
             body: {
                 fill: '#ffffff',
-                rx: 5,
-                ry: 5,
-                strokeWidth: 2.5,
-                strokeDasharray: '0,0 100,10 10,10',
-            }
+                rx: 22,
+                ry: 22,
+                strokeWidth: 3,
+                strokeDasharray: '6,6,6,6,6,6,6,6,40,6',
+            },
+            image: { x: 15, refWidth: -30 }
         },
         ports: {
             groups: {

@@ -11,15 +11,18 @@ export default function Interrelation() {
         attrs: {
             root: {
                 tabindex: 2,
+                removey: '0%',
+                removex: '100%',
                 title: 'Seleccione una interrelación'
             },
             body: {
                 fill: '#ffffff',
                 rx: 5,
                 ry: 5,
-                strokeWidth: 2.5,
-                strokeDasharray: '0,0 100,10 10,10',
-            }
+                strokeWidth: 3,
+                strokeDasharray: '97, 9, 9, 9, 9, 9',
+            },
+            image: { x: 35 }
         },
         ports: {
             groups: {
