@@ -466,13 +466,13 @@ class Graph extends React.Component {
         let errors = {};
         if (text !== null) {
             if (this.state.namesObjects.includes(text.toLowerCase())){
-                errors.nameObject = "name is already used";
+                errors.nameObject = "el nombre ya esta usado";
                 this.setState({
                     errors: errors
                 });
 
             }else if(text === ""){
-                errors.nameObject = "Must not be empty";
+                errors.nameObject = "el campo no debe estar vacio";
                 this.setState({
                     errors: errors
                 });
