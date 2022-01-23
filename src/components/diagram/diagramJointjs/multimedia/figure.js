@@ -14,7 +14,8 @@ export default function Multimedia() {
                 labelcolor: '#333333',
                 removey: '25%',
                 removex: '75%',
-                title: 'Objecto multimedia'
+                title: 'Objecto multimedia',
+                rid: '0'
             },
             body: {
                 fill: '#FFB74D',
@@ -36,6 +37,7 @@ export default function Multimedia() {
         },
         actions: [],
         attributes: [],
+        embeds: [],
         ports: {
             groups: {
                 left: { position: 'left', attrs: portAttrs },
