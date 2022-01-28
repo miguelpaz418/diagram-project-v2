@@ -24,7 +24,7 @@ export default function Reaction() {
                 textWrap: {
                     ellipsis: true,
                     width: '75%',
-                    height: 50
+                    height: '85%'
                 },
                 fontSize: 12,
                 fontWeight: 'bold',
