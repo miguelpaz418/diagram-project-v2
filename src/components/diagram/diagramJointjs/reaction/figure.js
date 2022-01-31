@@ -3,7 +3,7 @@ import * as joint from 'jointjs';
 export default function Reaction() {
     var rect2 = new joint.shapes.standard.Path({
         position: { x: 450, y: 250 },
-        size: { width: 100, height: 90 },
+        size: { width: 140, height: 140 },
         class: 'reaction',
         attrs: {            
             root: {
