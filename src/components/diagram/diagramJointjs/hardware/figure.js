@@ -13,7 +13,7 @@ export default function Hardware() {
                 labelcolor: '#333333',
                 removey: '15%',
                 removex: '85%',
-                title: 'Objecto hardware',
+                title: 'Objeto hardware',
                 rid: '0'
             },
             body: {
