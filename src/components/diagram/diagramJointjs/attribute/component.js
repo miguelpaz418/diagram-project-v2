@@ -63,9 +63,9 @@ class AttributeComponent extends React.PureComponent {
     });
   };
 
-  componentDidUpdate(prevProps) {
+  componentDidMount() {
 
-    if( this.props.object.hasOwnProperty('attributes') && prevProps.object !== this.props.object){
+    if( this.props.object.hasOwnProperty('attributes') ){
       var nameObject = undefinedToEmpty(this.props.object.attributes.attrs.root.text)
       var attributeComplete = undefinedToEmpty(this.props.object.attributes.attrs.root.key)
       var attributeType = "text"
