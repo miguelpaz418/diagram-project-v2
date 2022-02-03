@@ -465,6 +465,10 @@ class Graph extends React.Component {
         this.paper.options.defaultLink = new CustomLink({
         });
 
+        let message = "Las conexiones generadas desde este momento seran punteadas"
+
+        this.props.handleOpen(message,"change")
+        /**
         var links = this.graph.getLinks()
         
         links.forEach(element => {
@@ -472,6 +476,7 @@ class Graph extends React.Component {
                 line: { strokeDasharray: '5 2' }
             });
         });
+         */
     }
 
     continuousLine = () => {
@@ -486,6 +491,10 @@ class Graph extends React.Component {
         this.paper.options.defaultLink = new CustomLink({
         });
 
+        let message = "Las conexiones generadas desde este momento seran continuas"
+
+        this.props.handleOpen(message,"change")
+        /**
         var links = this.graph.getLinks()
 
         links.forEach(element => {
@@ -493,6 +502,7 @@ class Graph extends React.Component {
                 line: { strokeDasharray: '' }
             });
         });
+        */
     }
 
     zoomScale = () => {

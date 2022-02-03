@@ -120,6 +120,22 @@ class MessageDialog extends React.PureComponent {
             </DialogActions>
           </div>
       break;
+      case "change":
+          content = 
+          <div>          
+            <DialogTitle>Información</DialogTitle>
+            <DialogContent>
+              <Typography variant="h6">
+                  {message}
+              </Typography>
+            </DialogContent>
+            <DialogActions>
+              <Fab onClick={this.props.handleClose} color="secondary" size="small">
+                  <Close />
+              </Fab>
+            </DialogActions>
+          </div>
+      break;
       case "confirmation":
         content = 
         <div>          
