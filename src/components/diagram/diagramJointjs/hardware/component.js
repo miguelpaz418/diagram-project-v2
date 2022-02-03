@@ -179,9 +179,9 @@ class ObjectComponent extends React.PureComponent {
       //.filter(obj => !names.includes(obj.name))
       objectInputs =
       <div>
-        <InputLabel id="demo-simple-select-outlined-label">Objecto</InputLabel>
+        <InputLabel id="demo-simple-select-outlined-label">Objeto</InputLabel>
         <Select
-          label="Objecto"
+          label="Objeto"
           value={this.state.objectDetail}
           name="objectDetail"
           onChange={this.handleChange}

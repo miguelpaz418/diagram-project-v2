@@ -237,7 +237,7 @@ export const searchObject = (object,toolView, type ) => dispatch => {
     .get(`/object/${object.id}`)
     .then((response) => {
       if(response.data){
-        let message = "El objecto está siendo usado en otro diagrama, se eliminaran los demas diagramas ¿Desea continuar?"
+        let message = "El objeto está siendo usado en otro diagrama, se eliminaran los demas diagramas ¿Desea continuar?"
         dispatch({
           type: SET_MODAL,
           payload: {message, modal: type}
