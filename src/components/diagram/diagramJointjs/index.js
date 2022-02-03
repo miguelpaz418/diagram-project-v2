@@ -45,6 +45,15 @@ const styles = theme => ({
       minWidth: "65.5rem",
       maxWidth: "65.5rem"
     },
+    "@media (min-width: 1800px)": {
+      display: "flex",
+      height: "100%",
+      width: "100%",
+      minHeight: "41rem",
+      maxHeight: "41rem",
+      minWidth: "65.5rem",
+      maxWidth: "65.5rem"
+    },
     "@media (min-width: 1920px)": {
       display: "flex",
       height: "100%",
@@ -56,25 +65,50 @@ const styles = theme => ({
     }
   },
   buttonSave: {
+    "@media (min-width: 900px)": {
+      position: "absolute",
+      bottom: "-5rem",
+      right: "38.2rem"
+    },
     "@media (min-width: 1000px)": {
       position: "absolute",
-      bottom: "1.5rem",
-      right: "1.5rem"
+      bottom: "-1.5rem",
+      right: "43.3rem"
+    },
+    "@media (min-width: 1100px)": {
+      position: "absolute",
+      bottom: "2rem",
+      right: "48.6rem"
     },
     "@media (min-width: 1200px)": {
       position: "absolute",
-      bottom: "2.8rem",
-      right: "3.8rem"
+      bottom: "5.5rem",
+      right: "53.5rem"
+    },
+    "@media (min-width: 1300px)": {
+      position: "absolute",
+      bottom: "9.8rem",
+      right: "57rem"
+    },
+    "@media (min-width: 1500px)": {
+      position: "absolute",
+      bottom: "14.4rem",
+      right: "61.9rem"
     },
     "@media (min-width: 1600px)": {
       position: "absolute",
-      bottom: "2rem",
-      right: "7rem"
+      bottom: "19.8rem",
+      right: "71.2rem"
+    },
+    "@media (min-width: 1800px)": {
+      position: "absolute",
+      bottom: "34rem",
+      right: "71rem"
     },
     "@media (min-width: 1920px)": {
       position: "absolute",
-      bottom: "2rem",
-      right: "14rem"
+      bottom: "29.8rem",
+      right: "81.2rem"
     }
   }
 });
@@ -160,10 +194,10 @@ class ObjectDiagram extends Component {
     let actions2 = []
 
     if(typeUser){
-      objects = [ "Objecto multimedia", "Objecto hardware", "Objecto pasivo" ]
+      objects = [ 'Objeto multimedia', 'Objeto hardware', 'Objeto pasivo' ]
       if(type === "1"){
         actions2 = ["action","attribute"]
-        objects = objects.concat(actions2)
+        actions2 = actions2.concat(objects)
 
 
       }else if(type === "2"){
@@ -171,16 +205,16 @@ class ObjectDiagram extends Component {
         if(diagrams !== undefined){
           objects = this.panel(diagrams)
         }
-        objects = objects.concat(actions2)
+        actions2 = actions2.concat(objects)
 
       }else if(type === "3"){
-        actions2 = ["interaction","dotted","continuous"]
+        actions2 = ["dotted","continuous","interaction"]
         if(diagrams !== undefined){
           objects = this.panel(diagrams)
         }
-        objects = objects.concat(actions2)
+        actions2 = actions2.concat(objects)
       }
-      actions = actions.concat(objects)
+      actions = actions.concat(actions2)
 
     }
     actions.forEach(element => {
