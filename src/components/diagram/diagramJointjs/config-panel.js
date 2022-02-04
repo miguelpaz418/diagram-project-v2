@@ -55,14 +55,14 @@ function returnAction (type) {
             res =  {
                 icon: Interaction(),
                 action: 'interaction',
-                title: 'Interación'
+                title: 'Acción'
             }
         break;
         case "interrelation":
             res =  {
                 icon: Interrelation(),
                 action: 'interrelation',
-                title: 'Interrelación'
+                title: 'Acción'
             }
         break;
         case "reaction":
@@ -93,7 +93,7 @@ function returnAction (type) {
             res = {
                 icon: DottedLine(),
                 action: 'dot',
-                title: 'Linea punteada'
+                title: 'Intra-acción'
             }
         break;
         case "continuous":
@@ -101,7 +101,7 @@ function returnAction (type) {
             res = {
                 icon: ContinuousLine(),
                 action: 'con',
-                title: 'Linea continua'
+                title: 'Interacción'
             }
         break;
         default:
