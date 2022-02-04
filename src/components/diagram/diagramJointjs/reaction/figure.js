@@ -3,7 +3,7 @@ import * as joint from 'jointjs';
 export default function Reaction() {
     var rect2 = new joint.shapes.standard.Path({
         position: { x: 450, y: 250 },
-        size: { width: 100, height: 90 },
+        size: { width: 140, height: 140 },
         class: 'reaction',
         attrs: {            
             root: {
@@ -24,7 +24,7 @@ export default function Reaction() {
                 textWrap: {
                     ellipsis: true,
                     width: '75%',
-                    height: 50
+                    height: '85%'
                 },
                 fontSize: 12,
                 fontWeight: 'bold',

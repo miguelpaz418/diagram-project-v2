@@ -14,7 +14,7 @@ export default function Passive() {
                 labelcolor: '#333333',
                 removey: '0%',
                 removex: '100%',
-                title: 'Objecto pasivo',
+                title: 'Objeto pasivo',
                 rid: '0'
             },
             body: {

@@ -76,7 +76,7 @@ function constraintsObjects (fuente,destino,graph,typeDiagram) {
 
     if(tyFuente === 'object' && tyDestino === 'object'){
         res = true
-        message = "En este diagrama no se pueden relacionar dos objectos"
+        message = "En este diagrama no se pueden relacionar dos objetos"
     }else if(tyFuente === 'attribute' && tyDestino !== 'object'){
         res = true
         message = "En este diagrama un atributo no se puede relacionar con otras acciones o atributos"
@@ -96,7 +96,7 @@ function constraintsObjects (fuente,destino,graph,typeDiagram) {
         let name = parentFuente.attributes.attrs.label.text
         if(name === destino.attributes.attrs.label.text && destino.attributes.attrs.label.text !== undefined){
             res = true
-            message = "En este diagrama dos objectos iguales no pueden estar relacionados"
+            message = "En este diagrama dos objetos iguales no pueden estar relacionados"
         }
     }else if(tyFuente === 'object' && tyDestino === 'interrelation') {
         outNeigborsDestino.forEach(element => {
@@ -122,14 +122,14 @@ function constraintsObjects (fuente,destino,graph,typeDiagram) {
     }else if( (tyFuente === 'object' && allNeigborsFuente.length >= 2 && typeDiagram === "3" ) 
     || (tyDestino === 'object' && allNeigborsDestino.length >= 2 && typeDiagram === "3")){
         res = true
-        message = "El diagram debe comenzar y finalizar con un objecto"
+        message = "El diagram debe comenzar y finalizar con un objeto"
     }else if( (tyFuente === 'object' && allNeigborsFuente.length >= 2 && typeDiagram === "2" ) 
     || (tyDestino === 'object' && allNeigborsDestino.length >= 2 && typeDiagram === "2")){
         res = true
         message = "El objeto como maximo debe tener una conexion"
     }else if(tyFuente === 'object' && tyDestino === 'reaction'){
         res = true
-        message = "El objecto no se puede relacionar directamente con una reaccion"
+        message = "El objeto no se puede relacionar directamente con una reaccion"
     }else if(tyDestino === 'action'){
         const actions = fuente.attributes.actions
         if( actions.includes(titleDestino) && !embeds.includes(destino.id) ){

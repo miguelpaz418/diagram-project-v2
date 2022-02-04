@@ -47,9 +47,9 @@ class ReactionComponent extends React.PureComponent {
   
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidMount() {
 
-    if( this.props.object.hasOwnProperty('attributes') && prevProps.object !== this.props.object){
+    if( this.props.object.hasOwnProperty('attributes')){
       this.setState({
         nameObject: undefinedToEmpty(this.props.object.attributes.attrs.label.text)
       })
@@ -117,6 +117,7 @@ class ReactionComponent extends React.PureComponent {
                   placeholder="Ingresa una reacción"
                   className={classes.textField}
                   onChange={this.handleChange}
+                  value={this.state.nameObject}
                   fullWidth
                   variant="outlined"
                   error={this.state.errors.nameObject ? true : false}

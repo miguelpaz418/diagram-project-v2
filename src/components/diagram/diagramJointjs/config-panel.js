@@ -14,36 +14,32 @@ import DottedLine from "./lines/dottedLine"
 function returnAction (type) {
     let res = {}
     switch (type) {
-        case "Objecto pasivo":
-
+        case 'Objeto pasivo':
             res = {
                 icon: Passive(),
                 action: 'passive',
-                title: 'Add ObjectPassive'
+                title: 'Objeto pasivo'
             }
         break;
-        case "Objecto hardware":
-
+        case 'Objeto hardware':
             res = {
                 icon: Hardware(),
                 action: 'hardware',
-                title: 'Add ObjectHardware'
+                title: 'Objeto hardware'
             }
         break;
-        case "Objecto multimedia":
-
+        case 'Objeto multimedia':
             res = {
                 icon: Multimedia(),
                 action: 'multimedia',
-                title: 'Add ObjectMultimedia'
+                title: 'Objeto multimedia'
             }
         break;
         case "action":
-
             res =     {
                 icon: Action(),
                 action: 'action',
-                title: 'Add Action'
+                title: 'Acción'
             }
         break;
         case "attribute":
@@ -51,7 +47,7 @@ function returnAction (type) {
             res =  {
                 icon: Attribute(),
                 action: 'attribute',
-                title: 'Add attribute'
+                title: 'Atributo'
             }
         break;
         case "interaction":
@@ -59,21 +55,21 @@ function returnAction (type) {
             res =  {
                 icon: Interaction(),
                 action: 'interaction',
-                title: 'Add interaction'
+                title: 'Acción'
             }
         break;
         case "interrelation":
             res =  {
                 icon: Interrelation(),
                 action: 'interrelation',
-                title: 'Add interrelation'
+                title: 'Acción'
             }
         break;
         case "reaction":
             res =  {
                 icon: Reaction(),
                 action: 'reaction',
-                title: 'Add reaction'
+                title: 'Reacción'
             }
         break;
         case "in":
@@ -81,7 +77,7 @@ function returnAction (type) {
             res = {
                 icon: zoomInIcon(),
                 action: 'in',
-                title: 'Zoom in',
+                title: 'Acercar',
             }
         break;
         case "out":
@@ -89,7 +85,7 @@ function returnAction (type) {
             res = {
                 icon: zoomOutIcon(),
                 action: 'out',
-                title: 'Zoom out'
+                title: 'Alejar'
             }
         break;
         case "dotted":
@@ -97,7 +93,7 @@ function returnAction (type) {
             res = {
                 icon: DottedLine(),
                 action: 'dot',
-                title: 'Dotted line'
+                title: 'Intra-acción'
             }
         break;
         case "continuous":
@@ -105,7 +101,7 @@ function returnAction (type) {
             res = {
                 icon: ContinuousLine(),
                 action: 'con',
-                title: 'Continuous line'
+                title: 'Interacción'
             }
         break;
         default:
