@@ -1,5 +1,4 @@
 import React from "react";
-import SettingsEthernetIcon from '@material-ui/icons/SettingsEthernet';
 import SvgIcon from '@material-ui/core/SvgIcon';
 
 export default function Icon(props) {

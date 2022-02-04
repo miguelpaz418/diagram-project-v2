@@ -1,5 +1,4 @@
 import React from "react";
-import ArrowRightAltIcon from '@material-ui/icons/ArrowRightAlt';
 import SvgIcon from '@material-ui/core/SvgIcon';
 
 export default function Icon(props) {
