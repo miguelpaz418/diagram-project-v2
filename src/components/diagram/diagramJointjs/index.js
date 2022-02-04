@@ -229,7 +229,7 @@ class ObjectDiagram extends Component {
     let objects = []
     diagrams.forEach(diagram => {
       if(diagram.type === "1"){
-        diagram.objects.forEach(obj => {
+        diagram.refObjects.forEach(obj => {
           if(objects.length < 3 && !objects.includes(obj.shape)){
             objects.push(obj.shape)
           }else{
@@ -246,7 +246,7 @@ class ObjectDiagram extends Component {
     let objects = []
     diagrams.forEach(diagram => {
       if(diagram.type === "1" && diagram.diagramId !== id){
-        diagram.objects.forEach(obj => {
+        diagram.refObjects.forEach(obj => {
           objects.push(obj)
         });
       }

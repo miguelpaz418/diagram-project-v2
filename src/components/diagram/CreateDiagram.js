@@ -67,7 +67,7 @@ class CreateDiagram extends Component {
     if(diagrams !== undefined) {
       diagrams.forEach(diagram => {
         if(diagram.type === "1"){
-          diagram.objects.forEach(() => {
+          diagram.refObjects.forEach(() => {
             num++
           });
         }
