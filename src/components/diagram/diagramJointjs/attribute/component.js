@@ -107,13 +107,30 @@ class AttributeComponent extends React.PureComponent {
     return value
   };
 
+  validateData = data => {
+    let errors = {};
+    if (data.value === "") errors.value = "el campo no debe estar vacio";
+    return {
+      errors,
+      valid: Object.keys(errors).length === 0 ? true : false
+    };
+  };
+
 
   handleClickAttribute = event => {
     event.preventDefault();
     var element = this.props.object
     let previousTitle = element.attributes.attrs.root.title
     var text = this.state.attributeName + ': ' + this.state.value
-    if (text !== null) {
+
+    let data = { value: this.state.value };
+    const { valid, errors } = this.validateData(data);
+
+    if (!valid) {
+      this.setState({
+        errors: errors
+      });
+    }else{
         element.attr({
             label: { text: text },
             root: { 
@@ -140,7 +157,19 @@ class AttributeComponent extends React.PureComponent {
   render() {
     const { classes, parentsAttributes } = this.props;
     //get the attributes from data in redux
-    const { attributes } = this.props.data;
+
+    let attributes = [
+      { type: "text", id: 3, name: "Material" },
+      { type: "text", name: "Proporción", id: 9 },
+      { name: "Peso (kg)", id: 1, type: "number" },
+      { type: "text", id: 4, name: "Dimensiones" },
+      { name: "Textura", id: 6, type: "text" },
+      { id: 8, name: "Posición", type: "text" },
+      { name: "Forma", id: 5, type: "text" },
+      { id: 7, type: "text", name: "Tamaño" },
+      { id: 2, type: "text", name: "Color" },
+    ]
+
     return (
         <div>
           <DialogTitle>Editar atributo</DialogTitle>
