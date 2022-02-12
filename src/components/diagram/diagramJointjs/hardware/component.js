@@ -73,9 +73,11 @@ class ObjectComponent extends React.PureComponent {
 
 
   handleChange2 = (event,name) => {
-    this.setState({
+    if(event.css !== undefined){
+      this.setState({
         [name]: event.css.backgroundColor
-    });
+      });
+    }
   };
 
   validateData = data => {
