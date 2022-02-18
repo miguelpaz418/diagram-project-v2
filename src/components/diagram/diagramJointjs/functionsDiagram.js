@@ -102,7 +102,7 @@ function constraintsObjects (fuente,destino,graph,typeDiagram) {
         outNeigborsDestino.forEach(element => {
             if( (element.attributes.attrs.label.text === fuente.attributes.attrs.label.text ) && element.attributes.attrs.label.text !== undefined  && element.attributes.class === 'object'){
                 res = true
-                message = "En este diagrama una accion no se puede relacionar con otras acciones"
+                message = "En este diagrama dos objetos iguales no pueden estar relacionados"
                 return {res,message}
             }
             

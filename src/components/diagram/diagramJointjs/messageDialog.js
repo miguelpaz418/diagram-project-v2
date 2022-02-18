@@ -139,7 +139,7 @@ class MessageDialog extends React.PureComponent {
       case "confirmation":
         content = 
         <div>          
-          <DialogTitle>Restricción</DialogTitle>
+          <DialogTitle>Confirmación</DialogTitle>
           <DialogContent>
             <Typography variant="h6">
                 {message}
