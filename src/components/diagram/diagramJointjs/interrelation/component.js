@@ -72,6 +72,7 @@ class InterrelationComponent extends React.PureComponent {
                     <Chip
                       key={interrelation}
                       id={interrelation}
+                      data-testid={interrelation}
                       avatar={<ChipIconInterrelation pathIcon={interrelation} />}
                       label={interrelation}
                       onClick={((e) => this.handleClick(e, interrelation))}
@@ -86,6 +87,7 @@ class InterrelationComponent extends React.PureComponent {
                     <Chip
                       key={interrelation}
                       id={interrelation}
+                      data-testid={interrelation}
                       avatar={<ChipIconInterrelation pathIcon={interrelation} />}
                       label={interrelation}
                       onClick={((e) => this.handleClick(e, interrelation))}

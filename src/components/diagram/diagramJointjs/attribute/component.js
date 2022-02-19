@@ -12,7 +12,6 @@ import Fab from "@material-ui/core/Fab";
 import MenuItem from '@material-ui/core/MenuItem';
 import {InputLabel, FormControl, Select} from '@material-ui/core';
 
-import { connect } from "react-redux";
 
 import { 
   undefinedToEmpty,
@@ -182,6 +181,9 @@ class AttributeComponent extends React.PureComponent {
                   value={this.state.attributeComplete}
                   onChange={this.handleChangeAttribute}
                   fullWidth
+                  inputProps={{
+                    "data-testid": "attribute-select",
+                  }}
                 >
                   {attributes && parentsAttributes && 
                   attributes
@@ -205,6 +207,9 @@ class AttributeComponent extends React.PureComponent {
                 onChange={this.handleChange2}
                 fullWidth
                 variant="outlined"
+                inputProps={{
+                  "data-testid": "attribute-input",
+                }}
                 error={this.state.errors.value ? true : false}
                 helperText={this.state.errors.value}
               />
@@ -214,7 +219,7 @@ class AttributeComponent extends React.PureComponent {
             <Fab onClick={this.handleClose} color="secondary" size="small">
               <Close />
             </Fab>
-            <Fab onClick={this.handleClickAttribute} color="primary" size="small">
+            <Fab onClick={this.handleClickAttribute} data-testid="check-button" color="primary" size="small">
               <Check />
             </Fab>
           </DialogActions>
@@ -223,15 +228,6 @@ class AttributeComponent extends React.PureComponent {
   }
 }
 
+withStyles(styles)(AttributeComponent)
 
-const mapStateToProps = state => ({
-  data: state.data
-});
-
-const mapActionsToProps = {
-};
-
-export default connect(
-  mapStateToProps,
-  mapActionsToProps
-)(withStyles(styles)(AttributeComponent));
+export default withStyles(styles)(AttributeComponent);

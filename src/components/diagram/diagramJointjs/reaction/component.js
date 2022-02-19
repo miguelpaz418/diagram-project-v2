@@ -119,6 +119,9 @@ class ReactionComponent extends React.PureComponent {
                   onChange={this.handleChange}
                   value={this.state.nameObject}
                   fullWidth
+                  inputProps={{
+                    "data-testid": "reaction-input",
+                  }}
                   variant="outlined"
                   error={this.state.errors.nameObject ? true : false}
                   helperText={this.state.errors.nameObject}
@@ -129,7 +132,7 @@ class ReactionComponent extends React.PureComponent {
             <Fab onClick={this.handleCloseObject} color="secondary" size="small">
                 <Close />
             </Fab>
-            <Fab onClick={this.handleClickObject} color="primary" size="small">
+            <Fab onClick={this.handleClickObject} data-testid="check-button"  color="primary" size="small">
                 <Check />
             </Fab>
           </DialogActions>

@@ -157,6 +157,9 @@ class ObjectComponent extends React.PureComponent {
           onChange={this.handleChange}
           value={this.state.nameObject}
           fullWidth
+          inputProps={{
+            "data-testid": "name-input",
+          }}
           error={this.state.errors.nameObject ? true : false}
           helperText={this.state.errors.nameObject}
         />
@@ -187,6 +190,9 @@ class ObjectComponent extends React.PureComponent {
           value={this.state.objectDetail}
           name="objectDetail"
           onChange={this.handleChange}
+          inputProps={{
+            "data-testid": "object-select",
+          }}
           fullWidth
         >
           {listObjects && object.hasOwnProperty('attributes') && 
@@ -217,7 +223,7 @@ class ObjectComponent extends React.PureComponent {
             <Fab onClick={this.handleCloseObject} color="secondary" size="small">
                 <Close />
             </Fab>
-            <Fab onClick={this.handleClickObject} color="primary" size="small">
+            <Fab onClick={this.handleClickObject} data-testid="check-button" color="primary" size="small">
                 <Check />
             </Fab>
           </DialogActions>

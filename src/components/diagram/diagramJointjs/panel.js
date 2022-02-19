@@ -36,7 +36,7 @@ class Panel extends React.Component {
                 {listOfActions.map((button, index)  => {
                     return (
                     <Tooltip key={index} title={button.title} placement="left">
-                        <ListItem className={classes.btn} button onClick={() => action(button.action)} >
+                        <ListItem data-testid={button.title} className={classes.btn} button onClick={() => action(button.action)} >
                             <ListItemIcon className={classes.ico}>
                                 {button.icon}
                             </ListItemIcon>

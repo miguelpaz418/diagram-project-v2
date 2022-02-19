@@ -85,6 +85,7 @@ class ActionComponent extends React.PureComponent {
                     <Chip
                       key={action}
                       id={action}
+                      data-testid={action}
                       avatar={<ChipIconAction pathIcon={action} />}
                       label={action}
                       onClick={((e) => this.handleClick(e, action))}
@@ -99,6 +100,7 @@ class ActionComponent extends React.PureComponent {
                     <Chip
                       key={action}
                       id={action}
+                      data-testid={action}
                       avatar={<ChipIconAction pathIcon={action} />}
                       label={action}
                       onClick={((e) => this.handleClick(e, action))}

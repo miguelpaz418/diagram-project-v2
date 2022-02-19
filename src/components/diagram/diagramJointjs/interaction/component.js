@@ -86,6 +86,7 @@ class InteractionComponent extends React.PureComponent {
                     <Chip
                       key={interaction}
                       id={interaction}
+                      data-testid={interaction}
                       avatar={<ChipIconInteraction pathIcon={interaction} />}
                       label={interaction}
                       onClick={((e) => this.handleClick(e, interaction))}
@@ -100,6 +101,7 @@ class InteractionComponent extends React.PureComponent {
                     <Chip
                       key={interaction}
                       id={interaction}
+                      data-testid={interaction}
                       avatar={<ChipIconInteraction pathIcon={interaction} />}
                       label={interaction}
                       onClick={((e) => this.handleClick(e, interaction))}
